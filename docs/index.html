@@ -4,54 +4,88 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Parola – Italienisch Vokabeltrainer</title>
-
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="style.css?v=opt1">
+    <link rel="stylesheet" href="style.css?v=srs2">
+    <script defer src="app.js?v=srs2"></script>
   </head>
   <body>
     <header class="app-header">
       <div class="container header-inner">
         <img class="brand" src="assets/logo.svg" alt="Parola Logo" width="36" height="36"/>
         <h1>Parola – Italienisch Vokabeltrainer</h1>
+        <div id="dueCounter" class="muted" style="margin-left:auto"></div>
       </div>
     </header>
 
     <main class="container">
       <!-- Tabs -->
-      <nav class="tabs">
-        <button class="btn">Lernen</button>
-        <button class="btn">Vokabeln</button>
-        <button class="btn">Hinzufügen</button>
-        <button class="btn">Einstellungen</button>
+      <nav class="tabs" id="tabs">
+        <button class="btn active" data-tab="learn">Lernen</button>
+        <button class="btn" data-tab="list">Vokabeln</button>
+        <button class="btn" data-tab="add">Hinzufügen</button>
+        <button class="btn" data-tab="settings">Einstellungen</button>
       </nav>
 
-      <!-- Add Form -->
-      <section class="card">
-        <div class="grid grid-2">
-          <label>Italienisch
-            <input class="input" placeholder="ragazzo"/>
-          </label>
-          <label>Deutsch
-            <input class="input" placeholder="Junge"/>
-          </label>
+      <!-- Learn View (SRS) -->
+      <section class="card view center" id="view-learn">
+        <div class="learn-controls">
+          <span class="chip">Modus</span>
+          <select id="modeSelect" class="input input-compact">
+            <option value="flashcards">Flashcards</option>
+            <option value="mc">Multiple Choice</option>
+          </select>
+          <span class="chip" style="margin-left:12px">Richtung</span>
+          <select id="dirSelect" class="input input-compact">
+            <option value="it-de">Italienisch → Deutsch</option>
+            <option value="de-it">Deutsch → Italienisch</option>
+          </select>
         </div>
-        <label style="display:block; margin-top:10px;">Notizen (optional)
-          <input class="input" placeholder="Plural: ragazzi"/>
-        </label>
-        <div class="actions">
-          <button class="btn primary">Hinzufügen</button>
-          <button class="btn ghost">Zurücksetzen</button>
+        <div class="muted" id="learnMeta" style="margin-bottom:8px">—</div>
+        <div id="learnWord" class="word">—</div>
+        <button class="speaker-icon" id="speakBtn" title="Vorlesen">
+          <img src="assets/Hear-Icon.svg" alt="Hören">
+        </button>
+        <div id="answerBox" class="muted" style="margin:10px 0 0 0; font-size:20px; display:none"></div>
+
+        <!-- Multiple Choice options -->
+        <div id="mcBox" class="mc-box" style="display:none"></div>
+
+        <div class="actions" id="fcActions">
+          <button class="btn ghost" id="revealBtn">Auflösung zeigen</button>
+          <button class="btn ghost" id="againBtn">Wiederholen</button>
+          <button class="btn primary" id="goodBtn">Gewusst</button>
+        </div>
+        <div class="actions" id="mcActions" style="display:none">
+          <button class="btn ghost" id="skipBtn">Überspringen</button>
+          <button class="btn primary" id="nextBtn" disabled>Weiter</button>
         </div>
       </section>
 
-      <!-- Vocabulary List -->
-      <section class="card">
-        <input class="input" placeholder="Suchen…" style="margin-bottom:12px;"/>
-        <div class="muted" style="margin-bottom:8px;">7 / 7 Treffer</div>
+      <!-- Add View -->
+      <section class="card view" id="view-add" hidden>
+        <div class="grid grid-2">
+          <label>Italienisch
+            <input id="itInput" class="input" placeholder="ragazzo"/>
+          </label>
+          <label>Deutsch
+            <input id="deInput" class="input" placeholder="Junge"/>
+          </label>
+        </div>
+        <label style="display:block; margin-top:10px;">Notizen (optional)
+          <input id="notesInput" class="input" placeholder="Plural: ragazzi"/>
+        </label>
+        <div class="actions">
+          <button id="addBtn" class="btn primary">Hinzufügen</button>
+          <button id="resetBtn" class="btn ghost">Zurücksetzen</button>
+        </div>
+      </section>
+
+      <!-- List View -->
+      <section class="card view" id="view-list" hidden>
+        <input id="searchInput" class="input" placeholder="Suchen…" style="margin-bottom:12px;"/>
+        <div class="muted" style="margin-bottom:8px;"><span id="countTxt">0</span> Treffer</div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -63,48 +97,27 @@
                 <th>Aktionen</th>
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td><b>ciao</b></td>
-                <td>hallo; tschüss</td>
-                <td class="muted">08.08.2025, 13:59</td>
-                <td>0</td>
-                <td class="td-actions">
-                  <button class="btn ghost">Pausieren</button>
-                  <button class="btn ghost">Löschen</button>
-                </td>
-              </tr>
-              <tr>
-                <td><b>grazie</b></td>
-                <td>danke</td>
-                <td class="muted">08.08.2025, 13:46</td>
-                <td>0</td>
-                <td class="td-actions">
-                  <button class="btn ghost">Pausieren</button>
-                  <button class="btn ghost">Löschen</button>
-                </td>
-              </tr>
-              <tr>
-                <td><b>per favore</b></td>
-                <td>bitte</td>
-                <td class="muted">09.08.2025, 13:49</td>
-                <td>1</td>
-                <td class="td-actions">
-                  <button class="btn ghost">Pausieren</button>
-                  <button class="btn ghost">Löschen</button>
-                </td>
-              </tr>
-            </tbody>
+            <tbody id="tableBody"></tbody>
           </table>
         </div>
       </section>
 
-      <!-- Speaker Icon demo -->
-      <section class="card center">
-        <div class="word">ciao</div>
-        <button class="speaker-icon" title="Vorlesen">
-          <img src="assets/Hear-Icon.svg" alt="Hören">
-        </button>
+      <!-- Settings View -->
+      <section class="card view" id="view-settings" hidden>
+        <h3>Einstellungen</h3>
+        <div class="grid grid-2">
+          <label>Neue Karten pro Sitzung
+            <input id="newPerSession" type="number" class="input" value="10"/>
+          </label>
+          <label>Max. Wiederholungen pro Sitzung
+            <input id="maxReviews" type="number" class="input" value="100"/>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="exportBtn" class="btn ghost">Export als JSON</button>
+          <button id="importBtn" class="btn ghost">Import aus Zwischenablage</button>
+          <button id="clearBtn" class="btn ghost">Alles löschen</button>
+        </div>
       </section>
     </main>
   </body>
