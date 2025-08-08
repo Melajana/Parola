@@ -20,7 +20,7 @@ function levenshtein(a,b){const m=a.length,n=b.length,dp=Array.from({length:m+1}
 function isClose(a,b){const A=norm(a),B=norm(b);if(!A||!B)return false;if(A===B)return true;const dist=levenshtein(A,B);const tol=Math.max(0,Math.round((state.settings.tolerance||20)/100*B.length));return dist<=tol}
 // Tabs
 const tabsEl=byId('tabs'),views={learn:byId('view-learn'),list:byId('view-list'),add:byId('view-add'),settings:byId('view-settings')};
-tabsEl.addEventListener('click',e=>{const btn=e.target.closest('button[data-tab]');if(!btn)return;tabsEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));const tab=btn.dataset.tab;Object.entries(views).forEach(([id,el])=>el.hidden=id!==tab);if(tab==='learn')updateLearn();if(tab==='list')renderList();if(tab==='settings')renderStats()});
+if(tabsEl) tabsEl.addEventListener('click',e=>{const btn=e.target.closest('button[data-tab]');if(!btn)return;tabsEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));const tab=btn.dataset.tab;Object.entries(views).forEach(([id,el])=>el.hidden=id!==tab);if(tab==='learn')updateLearn();if(tab==='list')renderList();if(tab==='settings')renderStats()});
 // Elements
 const learnWord=byId('learnWord'),learnMeta=byId('learnMeta'),answerBox=byId('answerBox'),dueCounter=byId('dueCounter'),fcActions=byId('fcActions'),mcActions=byId('mcActions'),mcBox=byId('mcBox'),typeBox=byId('typeBox'),typeInput=byId('typeInput'),typeFeedback=byId('typeFeedback'),modeSelect=byId('modeSelect'),dirSelect=byId('dirSelect');
 modeSelect.value=state.settings.mode;dirSelect.value=state.settings.direction;
