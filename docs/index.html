@@ -1,158 +1,124 @@
 <!doctype html>
 <html lang="de">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Parola – Italienisch Vokabeltrainer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=srs12"/>
-  <script defer src="app.js?v=srs12"></script>
-</head>
-<body>
-<header class="app-header">
-  <div class="container header-inner">
-    <img class="brand" src="assets/logo.svg" alt="Parola Logo" width="36" height="36"/>
-    <h1>Parola – Italienisch Vokabeltrainer</h1>
-    <div id="dueCounter" class="muted" style="margin-left:auto"></div>
-  </div>
-</header>
-
-<main class="container">
-  <nav class="tabs" id="tabs">
-    <button class="btn" data-tab="learn">Lernen</button>
-    <button class="btn active" data-tab="list">Vokabeln</button>
-    <button class="btn" data-tab="add">Hinzufügen</button>
-    <button class="btn" data-tab="settings">Einstellungen</button>
-  </nav>
-
-  <!-- Learn -->
-  <section class="card view center" id="view-learn" hidden>
-    <div class="learn-controls">
-      <span class="chip">Modus</span>
-      <select id="modeSelect" class="input input-compact">
-        <option value="flashcards">Karteikarten</option>
-        <option value="mc">Multiple Choice</option>
-        <option value="type">Tippen</option>
-      </select>
-      <span class="chip" style="margin-left:12px">Richtung</span>
-      <select id="dirSelect" class="input input-compact">
-        <option value="it-de">Italienisch → Deutsch</option>
-        <option value="de-it">Deutsch → Italienisch</option>
-      </select>
-    </div>
-    <div class="muted" id="learnMeta" style="margin-bottom:8px">—</div>
-    <div id="learnWord" class="word">—</div>
-    <button class="speaker-icon" id="speakBtn" title="Vorlesen"><img class="icon" src="assets/Hear-Icon.svg" alt="Hören"></button>
-
-    <!-- Tippen -->
-    <div id="typeBox" class="type-box" style="display:none">
-      <input id="typeInput" class="input type-input" placeholder="Antwort eingeben…"/>
-      <div class="actions">
-        <button class="btn ghost clickfx" id="typeRevealBtn">Auflösung zeigen</button>
-        <button class="btn primary clickfx" id="typeCheckBtn">Prüfen</button>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Parola – Italienisch Vokabeltrainer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=srs2">
+    <script defer src="app.js?v=srs2"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="container header-inner">
+        <img class="brand" src="assets/logo.svg" alt="Parola Logo" width="36" height="36"/>
+        <h1>Parola – Italienisch Vokabeltrainer</h1>
+        <div id="dueCounter" class="muted" style="margin-left:auto"></div>
       </div>
-      <div id="typeFeedback" class="type-feedback" style="display:none"></div>
-    </div>
+    </header>
 
-    <!-- Flashcard / MC -->
-    <div id="answerBox" class="muted" style="margin-top:10px; font-size:20px; display:none"></div>
-    <div id="mcBox" class="mc-box" style="display:none"></div>
+    <main class="container">
+      <!-- Tabs -->
+      <nav class="tabs" id="tabs">
+        <button class="btn active" data-tab="learn">Lernen</button>
+        <button class="btn" data-tab="list">Vokabeln</button>
+        <button class="btn" data-tab="add">Hinzufügen</button>
+        <button class="btn" data-tab="settings">Einstellungen</button>
+      </nav>
 
-    <div class="actions" id="fcActions">
-      <button class="btn ghost clickfx" id="revealBtn">Auflösung zeigen</button>
-      <button class="btn ghost clickfx" id="againBtn">Wiederholen</button>
-      <button class="btn primary clickfx" id="goodBtn">Gewusst</button>
-    </div>
-    <div class="actions" id="mcActions" style="display:none">
-      <button class="btn ghost clickfx" id="skipBtn">Überspringen</button>
-      <button class="btn primary clickfx" id="nextBtn" disabled>Weiter</button>
-    </div>
-  </section>
+      <!-- Learn View (SRS) -->
+      <section class="card view center" id="view-learn">
+        <div class="learn-controls">
+          <span class="chip">Modus</span>
+          <select id="modeSelect" class="input input-compact">
+            <option value="flashcards">Flashcards</option>
+            <option value="mc">Multiple Choice</option>
+          </select>
+          <span class="chip" style="margin-left:12px">Richtung</span>
+          <select id="dirSelect" class="input input-compact">
+            <option value="it-de">Italienisch → Deutsch</option>
+            <option value="de-it">Deutsch → Italienisch</option>
+          </select>
+        </div>
+        <div class="muted" id="learnMeta" style="margin-bottom:8px">—</div>
+        <div id="learnWord" class="word">—</div>
+        <button class="speaker-icon" id="speakBtn" title="Vorlesen">
+          <img src="assets/Hear-Icon.svg" alt="Hören">
+        </button>
+        <div id="answerBox" class="muted" style="margin:10px 0 0 0; font-size:20px; display:none"></div>
 
-  <!-- Add -->
-  <section class="card view" id="view-add" hidden>
-    <div class="grid grid-2">
-      <label>Italienisch <input id="itInput" class="input" placeholder="ragazzo"></label>
-      <label>Deutsch <input id="deInput" class="input" placeholder="Junge"></label>
-    </div>
-    <label style="display:block; margin-top:10px;">Notizen (optional)
-      <input id="notesInput" class="input" placeholder="Plural: ragazzi">
-    </label>
-    <div class="actions">
-      <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
-      <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
-    </div>
-  </section>
+        <!-- Multiple Choice options -->
+        <div id="mcBox" class="mc-box" style="display:none"></div>
 
-  <!-- List -->
-  <section class="card view" id="view-list">
-    <div class="list-controls">
-      <input id="searchInput" class="input" placeholder="Suchen…"/>
-      <select id="statusFilter" class="input input-compact">
-        <option value="all">Status: Alle</option>
-        <option value="due">Fällig</option>
-        <option value="active">Aktiv</option>
-        <option value="suspended">Pausiert</option>
-      </select>
-      <select id="successFilter" class="input input-compact">
-        <option value="all">Erfolg: Alle</option>
-        <option value="lt50">Erfolg < 50%</option>
-        <option value="50to79">Erfolg 50–79%</option>
-        <option value="ge80">Erfolg ≥ 80%</option>
-      </select>
-      <select id="sortBy" class="input input-compact">
-        <option value="default">Sortierung: Standard</option>
-        <option value="dueFirst">Fällig zuerst</option>
-        <option value="succAsc">Erfolg aufsteigend</option>
-        <option value="succDesc">Erfolg absteigend</option>
-        <option value="itAZ">Alphabetisch IT</option>
-        <option value="deAZ">Alphabetisch DE</option>
-      </select>
-    </div>
-    <div class="muted" style="margin:8px 0;"><span id="countTxt">0</span> Treffer</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Italienisch</th><th>Deutsch</th><th>Fällig</th><th>Streak</th><th>Erfolg</th><th>Aktionen</th></tr></thead>
-        <tbody id="tableBody"></tbody>
-      </table>
-    </div>
-  </section>
+        <div class="actions" id="fcActions">
+          <button class="btn ghost" id="revealBtn">Auflösung zeigen</button>
+          <button class="btn ghost" id="againBtn">Wiederholen</button>
+          <button class="btn primary" id="goodBtn">Gewusst</button>
+        </div>
+        <div class="actions" id="mcActions" style="display:none">
+          <button class="btn ghost" id="skipBtn">Überspringen</button>
+          <button class="btn primary" id="nextBtn" disabled>Weiter</button>
+        </div>
+      </section>
 
-  <!-- Settings -->
-  <section class="card view" id="view-settings" hidden>
-    <h3>Einstellungen</h3>
-    <div class="grid grid-2">
-      <label>Neue Karten pro Sitzung <input id="newPerSession" type="number" class="input" value="10"></label>
-      <label>Max. Wiederholungen pro Sitzung <input id="maxReviews" type="number" class="input" value="100"></label>
-    </div>
-    <div class="actions wrap">
-      <button id="exportBtn" class="btn ghost clickfx">Export als JSON</button>
-      <label class="file-btn btn ghost clickfx">JSON importieren <input id="fileJson" type="file" accept="application/json" hidden></label>
-      <label class="file-btn btn ghost clickfx">CSV importieren <input id="fileCsv" type="file" accept=".csv,text/csv" hidden></label>
-      <button id="csvTplBtn" class="btn ghost clickfx">CSV‑Vorlage herunterladen</button>
-      <button id="clearBtn" class="btn ghost clickfx">Alles löschen</button>
-    </div>
-    <div class="grid grid-2" style="margin-top:12px;">
-      <label>Fehler‑Toleranz (Tippen)
-        <select id="toleranceSelect" class="input">
-          <option value="0">Streng (0 %)</option>
-          <option value="10">Mittel (10 %)</option>
-          <option value="20" selected>Locker (20 %)</option>
-        </select>
-      </label>
-    </div>
+      <!-- Add View -->
+      <section class="card view" id="view-add" hidden>
+        <div class="grid grid-2">
+          <label>Italienisch
+            <input id="itInput" class="input" placeholder="ragazzo"/>
+          </label>
+          <label>Deutsch
+            <input id="deInput" class="input" placeholder="Junge"/>
+          </label>
+        </div>
+        <label style="display:block; margin-top:10px;">Notizen (optional)
+          <input id="notesInput" class="input" placeholder="Plural: ragazzi"/>
+        </label>
+        <div class="actions">
+          <button id="addBtn" class="btn primary">Hinzufügen</button>
+          <button id="resetBtn" class="btn ghost">Zurücksetzen</button>
+        </div>
+      </section>
 
-    <h3 style="margin-top:16px;">Statistik</h3>
-    <div id="statsRow" class="stats-row">
-      <div class="stat"><div class="stat-num" id="statToday">0</div><div class="stat-label">Heute gelernt</div></div>
-      <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Gesamt gelernt</div></div>
-      <div class="stat"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Aktueller Streak</div></div>
-    </div>
-    <canvas id="statsChart" width="600" height="160" class="stats-chart"></canvas>
-    <div class="muted" style="margin-top:8px">Grün = richtig, Rot = falsch (letzte 7 Tage)</div>
-  </section>
-</main>
-</body>
+      <!-- List View -->
+      <section class="card view" id="view-list" hidden>
+        <input id="searchInput" class="input" placeholder="Suchen…" style="margin-bottom:12px;"/>
+        <div class="muted" style="margin-bottom:8px;"><span id="countTxt">0</span> Treffer</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Italienisch</th>
+                <th>Deutsch</th>
+                <th>Fällig</th>
+                <th>Streak</th>
+                <th>Aktionen</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Settings View -->
+      <section class="card view" id="view-settings" hidden>
+        <h3>Einstellungen</h3>
+        <div class="grid grid-2">
+          <label>Neue Karten pro Sitzung
+            <input id="newPerSession" type="number" class="input" value="10"/>
+          </label>
+          <label>Max. Wiederholungen pro Sitzung
+            <input id="maxReviews" type="number" class="input" value="100"/>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="exportBtn" class="btn ghost">Export als JSON</button>
+          <button id="importBtn" class="btn ghost">Import aus Zwischenablage</button>
+          <button id="clearBtn" class="btn ghost">Alles löschen</button>
+        </div>
+      </section>
+    </main>
+  </body>
 </html>
