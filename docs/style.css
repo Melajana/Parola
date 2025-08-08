@@ -47,3 +47,15 @@ td.success-cell{font-weight:700}.success-cell.ok{color:var(--ok)}.success-cell.m
 /* Inline edit */
 .due-edit{display:flex;gap:8px;align-items:center}
 .due-input{padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+
+
+/* === Global button sizing & safety overrides (added) === */
+button, .btn {
+  font-size: 13px !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+/* Ensure header stays on top for clicks */
+.app-header { z-index: 1000; }
