@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=i1">
-    <script defer src="app.js?v=i1"></script>
+    <link rel="stylesheet" href="style.css?v=srs2">
+    <script defer src="app.js?v=srs2"></script>
   </head>
   <body>
     <header class="app-header">
@@ -22,11 +22,46 @@
     <main class="container">
       <!-- Tabs -->
       <nav class="tabs" id="tabs">
-        <button class="btn" data-tab="learn">Lernen</button>
-        <button class="btn active" data-tab="list">Vokabeln</button>
+        <button class="btn active" data-tab="learn">Lernen</button>
+        <button class="btn" data-tab="list">Vokabeln</button>
         <button class="btn" data-tab="add">Hinzufügen</button>
         <button class="btn" data-tab="settings">Einstellungen</button>
       </nav>
+
+      <!-- Learn View (SRS) -->
+      <section class="card view center" id="view-learn">
+        <div class="learn-controls">
+          <span class="chip">Modus</span>
+          <select id="modeSelect" class="input input-compact">
+            <option value="flashcards">Flashcards</option>
+            <option value="mc">Multiple Choice</option>
+          </select>
+          <span class="chip" style="margin-left:12px">Richtung</span>
+          <select id="dirSelect" class="input input-compact">
+            <option value="it-de">Italienisch → Deutsch</option>
+            <option value="de-it">Deutsch → Italienisch</option>
+          </select>
+        </div>
+        <div class="muted" id="learnMeta" style="margin-bottom:8px">—</div>
+        <div id="learnWord" class="word">—</div>
+        <button class="speaker-icon" id="speakBtn" title="Vorlesen">
+          <img src="assets/Hear-Icon.svg" alt="Hören">
+        </button>
+        <div id="answerBox" class="muted" style="margin:10px 0 0 0; font-size:20px; display:none"></div>
+
+        <!-- Multiple Choice options -->
+        <div id="mcBox" class="mc-box" style="display:none"></div>
+
+        <div class="actions" id="fcActions">
+          <button class="btn ghost" id="revealBtn">Auflösung zeigen</button>
+          <button class="btn ghost" id="againBtn">Wiederholen</button>
+          <button class="btn primary" id="goodBtn">Gewusst</button>
+        </div>
+        <div class="actions" id="mcActions" style="display:none">
+          <button class="btn ghost" id="skipBtn">Überspringen</button>
+          <button class="btn primary" id="nextBtn" disabled>Weiter</button>
+        </div>
+      </section>
 
       <!-- Add View -->
       <section class="card view" id="view-add" hidden>
@@ -48,7 +83,7 @@
       </section>
 
       <!-- List View -->
-      <section class="card view" id="view-list">
+      <section class="card view" id="view-list" hidden>
         <input id="searchInput" class="input" placeholder="Suchen…" style="margin-bottom:12px;"/>
         <div class="muted" style="margin-bottom:8px;"><span id="countTxt">0</span> Treffer</div>
         <div class="table-wrap">
@@ -64,19 +99,6 @@
             </thead>
             <tbody id="tableBody"></tbody>
           </table>
-        </div>
-      </section>
-
-      <!-- Learn View (simplified flashcard demo) -->
-      <section class="card view center" id="view-learn" hidden>
-        <div class="muted" style="margin-bottom:8px">Flashcards (Demo)</div>
-        <div id="learnWord" class="word">—</div>
-        <button class="speaker-icon" id="speakBtn" title="Vorlesen">
-          <img src="assets/Hear-Icon.svg" alt="Hören">
-        </button>
-        <div class="actions">
-          <button class="btn ghost" id="againBtn">Wiederholen</button>
-          <button class="btn primary" id="goodBtn">Gewusst</button>
         </div>
       </section>
 

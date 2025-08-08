@@ -1,4 +1,4 @@
-/* ===== Parola /docs – Black/White + interactive (vanilla JS) ===== */
+/* Black/White + SRS + MC */
 :root { --bg:#ffffff; --text:#111111; --surface:#ffffff; --border:#e6e6e6; --accent:#111111; --accent-ghost:#f2f2f2; }
 @media (prefers-color-scheme: dark) {
   :root { --bg:#0f0f10; --text:#f5f5f5; --surface:#151517; --border:#2a2a2d; --accent:#ffffff; --accent-ghost:#222326; }
@@ -28,12 +28,23 @@ body { margin:0; font:16px/1.45 'Inter', system-ui, -apple-system, Segoe UI, Rob
 
 label { display:flex; flex-direction:column; gap:6px }
 .input, select, textarea { padding:10px 12px; border-radius:9999px; border:1px solid var(--border); width:100% !important; box-sizing:border-box !important; background:var(--surface); color:var(--text) }
+.input-compact { padding:6px 10px; width:auto !important; }
 
 .speaker-icon { background:transparent; border:0; padding:0; margin:12px auto 0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
 .speaker-icon img { width:36px; height:36px; }
 @media (prefers-color-scheme: dark) { .speaker-icon img { filter: invert(1); } }
 
-/* Table polish */
+/* Controls row */
+.learn-controls { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.chip { display:inline-block; padding:4px 12px; border-radius:9999px; background:var(--accent-ghost); border:1px solid var(--border); font-family:'Nunito','Inter'; font-weight:800; }
+
+/* Multiple choice */
+.mc-box { display:grid; gap:10px; max-width:520px; margin:12px auto 0; }
+.mc-option { padding:10px 14px; border-radius:9999px; border:1px solid var(--border); background:var(--accent-ghost); cursor:pointer; font-family:'Nunito','Inter'; font-weight:800; }
+.mc-option.correct { background:#c7f9cc; }
+.mc-option.wrong { background:#ffd6d6; }
+
+/* Table */
 .table-wrap { border-radius: 16px; overflow: hidden; }
 table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.04); }
 thead th { position: sticky; top: 0; z-index: 1; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(6px); text-align: left; font-weight: 700; padding: 14px 16px; border-bottom: 1px solid var(--border); }
