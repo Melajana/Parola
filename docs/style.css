@@ -59,3 +59,9 @@ button, .btn {
 
 /* Ensure header stays on top for clicks */
 .app-header { z-index: 1000; }
+
+
+/* === Clickability hardening (tabs & buttons) === */
+nav.tabs { position: relative; z-index: 2; }
+nav.tabs .btn { pointer-events: auto; }
+.card { position: relative; }
