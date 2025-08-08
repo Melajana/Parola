@@ -133,6 +133,29 @@ select.input {
   .speaker-btn img { width: 22px; height: 22px; }
 }
 
+    
+/* --- Speaker button v6 (mask-based icon) --- */
+.speaker-btn {
+  background: var(--clr-sage) !important;
+  color: #fff !important;
+  width: 60px; height: 60px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9999px !important;
+  border: none !important;
+  margin: 12px auto 0;
+}
+.speaker-btn .icon-speaker {
+  display: block;
+  width: 28px; height: 28px;
+  background-color: #ffffff;
+  -webkit-mask: url('assets/Hear-Icon.svg') center / contain no-repeat;
+  mask: url('assets/Hear-Icon.svg') center / contain no-repeat;
+}
+@media (max-width: 640px) {
+  .speaker-btn { width: 52px; height: 52px; }
+  .speaker-btn .icon-speaker { width: 24px; height: 24px; }
+}
+
     </style>
     <script defer src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script defer src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -214,7 +237,7 @@ select.input {
             <div className="card" style={{textAlign:'center'}}>
               <div className="muted" style={{marginBottom:8}}>{direction === 'it-de' ? 'Frage (IT)' : 'Frage (DE)'} – Intervall: {formatInterval(INTERVALS[current.intervalIndex ?? 0])}</div>
               <div style={{fontSize:32, fontWeight:700,fontFamily:'Ubuntu'}}>{q}</div>
-              <button className="speaker-btn" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}><img src="assets/Hear-Icon.svg" aria-hidden="true" alt="Vorlesen" /><span class="sr-only">Vorlesen</span></button>
+              <button className="speaker-btn" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}><span class="icon-speaker" aria-hidden="true" alt="Vorlesen" /><span class="sr-only">Vorlesen</span></button>
               {reveal && <div style={{marginTop:10, fontSize:22}}><b>Antwort:</b> {a}</div>}
               <div style={{marginTop:14}}><button className="btn ghost" onClick={()=>setReveal(r=>!r)}>{reveal ? "Vorderseite" : "Auflösung zeigen"}</button></div>
               <div style={{display:'flex', gap:8, marginTop:16}}>
