@@ -4,48 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Parola – Italienisch Vokabeltrainer</title>
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="button-row">
-        <button class="main-btn">Lernen</button>
-        <button class="main-btn">Vokabeln</button>
-        <button class="main-btn">Hinzufügen</button>
-        <button class="main-btn">Einstellungen</button>
-    </div>
+    <header>
+        <h1>Parola – Italienisch Vokabeltrainer</h1>
+    </header>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Italienisch</th>
-                <th>Deutsch</th>
-                <th>Fällig</th>
-                <th>Streak</th>
-                <th>Aktionen</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><b>ciao</b></td>
-                <td>hallo; tschüss</td>
-                <td>08.08.2025, 12:03</td>
-                <td>0</td>
-                <td>
-                    <button class="action-btn pause">Pausieren</button>
-                    <button class="action-btn delete">Löschen</button>
-                </td>
-            </tr>
-            <tr>
-                <td><b>grazie</b></td>
-                <td>danke</td>
-                <td>08.08.2025, 12:03</td>
-                <td>0</td>
-                <td>
-                    <button class="action-btn pause">Pausieren</button>
-                    <button class="action-btn delete">Löschen</button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <nav>
+        <button class="nav-btn">Lernen</button>
+        <button class="nav-btn">Vokabeln</button>
+        <button class="nav-btn">Hinzufügen</button>
+        <button class="nav-btn">Einstellungen</button>
+    </nav>
+
+    <main>
+        <table>
+            <thead>
+                <tr>
+                    <th>Italienisch</th>
+                    <th>Deutsch</th>
+                    <th>Fällig</th>
+                    <th>Streak</th>
+                    <th>Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>ciao</strong></td>
+                    <td>hallo; tschüss</td>
+                    <td>08.08.2025, 13:59</td>
+                    <td>0</td>
+                    <td>
+                        <button class="action-btn pause">Pausieren</button>
+                        <button class="action-btn delete">Löschen</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>grazie</strong></td>
+                    <td>danke</td>
+                    <td>08.08.2025, 13:46</td>
+                    <td>0</td>
+                    <td>
+                        <button class="action-btn pause">Pausieren</button>
+                        <button class="action-btn delete">Löschen</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
 </body>
 </html>
