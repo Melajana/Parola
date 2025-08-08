@@ -1,71 +1,69 @@
+
 body {
-    font-family: 'Airbnb Cereal', Arial, sans-serif;
-    background-color: white;
+    font-family: 'Arial', sans-serif;
+    background: white;
     color: black;
-    margin: 0;
-    padding: 0;
+    padding: 20px;
 }
 
-header {
-    padding: 1rem;
-    text-align: center;
-    font-size: 1.5rem;
+.button-row {
+    margin-bottom: 20px;
+}
+
+.main-btn {
+    background-color: #a0d6d1;
+    border: none;
+    padding: 8px 16px;
+    margin: 4px;
+    border-radius: 20px;
     font-weight: bold;
+    cursor: pointer;
 }
 
-.vocab-table {
-    width: 90%;
-    margin: 2rem auto;
-    border-collapse: separate;
-    border-spacing: 0 10px;
+.main-btn:hover {
+    background-color: #88c2bb;
 }
 
-.vocab-table thead th {
-    background: #f5f5f5;
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+th, td {
     padding: 10px;
-    border-radius: 6px;
+    border-bottom: 1px solid #ddd;
     text-align: left;
 }
 
-.vocab-table tbody td {
-    background: #fafafa;
-    padding: 10px;
-    border-radius: 6px;
+th {
+    background: #f7f7f7;
 }
 
-.vocab-table tbody tr {
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.btn {
-    padding: 6px 12px;
+.action-btn {
     border: none;
     border-radius: 20px;
-    font-family: 'Ubuntu', sans-serif;
-    font-weight: 700;
+    padding: 6px 12px;
+    margin-right: 6px;
+    font-weight: bold;
     cursor: pointer;
-    margin: 0 4px;
 }
 
-.btn.pause {
-    background-color: #7dc2b8;
+.pause {
+    background-color: #e0e0e0;
+}
+
+.delete {
+    background-color: #f28b82;
     color: white;
 }
 
-.btn.delete {
-    background-color: #d9534f;
-    color: white;
+.pause:hover {
+    background-color: #c7c7c7;
 }
 
-.audio-button {
-    display: flex;
-    justify-content: center;
-    margin-top: 2rem;
-}
-
-.audio-button img {
-    width: 50px;
-    height: 50px;
-    filter: invert(35%) sepia(30%) saturate(400%) hue-rotate(120deg);
-    cursor: pointer;
+.delete:hover {
+    background-color: #e57373;
 }
