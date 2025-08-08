@@ -256,9 +256,9 @@ select.input {
               <div style={{fontSize:32, fontWeight:700,fontFamily:'Ubuntu'}}>{q}</div>
               <button className="speaker-icon" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}><span class="icon-speaker" aria-hidden="true" alt="Vorlesen" /><span class="sr-only">Vorlesen</span></button>
               {reveal && <div style={{marginTop:10, fontSize:22}}><b>Antwort:</b> {a}</div>}
-              <div style={{marginTop:14}}><button className="btn ghost" onClick={()=>setReveal(r=>!r)}>{reveal ? "Vorderseite" : "Auflösung zeigen"}</button></div>
+              <div style={{marginTop:14}}><button className="speaker-icon" onClick={()=>setReveal(r=>!r)}>{reveal ? "Vorderseite" : "Auflösung zeigen"}</button></div>
               <div style={{display:'flex', gap:8, marginTop:16}}>
-                <button className="btn ghost" onClick={()=>mark('again')}>Wiederholen</button>
+                <button className="speaker-icon" onClick={()=>mark('again')}>Wiederholen</button>
                 <button className="btn primary" onClick={()=>mark('good')}>Gewusst</button>
               </div>
             </div>
@@ -276,7 +276,7 @@ select.input {
         return (<div className="card" style={{textAlign:'center'}}>
           <div className="muted" style={{marginBottom:8}}>Multiple Choice – Frage</div>
           <div style={{fontSize:32,fontWeight:700,fontFamily:'Ubuntu'}}>{q}</div>
-          <div style={{display:'grid', gap:8, marginTop:16}}>{options.map(opt => (<button key={opt} className="btn ghost" onClick={()=>pick(opt)}>{opt}</button>))}</div>
+          <div style={{display:'grid', gap:8, marginTop:16}}>{options.map(opt => (<button key={opt} className="speaker-icon" onClick={()=>pick(opt)}>{opt}</button>))}</div>
         </div>);
       }
 
@@ -308,7 +308,7 @@ select.input {
           <label style={{display:'block', marginTop:10}}>Notizen (optional)<input className="input" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Plural: ragazzi"/></label>
           <div style={{marginTop:12, display:'flex', gap:8}}>
             <button className="btn primary" type="submit">Hinzufügen</button>
-            <button className="btn ghost" type="button" onClick={()=>{setIt("");setDe("");setNotes("");}}>Zurücksetzen</button>
+            <button className="speaker-icon" type="button" onClick={()=>{setIt("");setDe("");setNotes("");}}>Zurücksetzen</button>
           </div>
         </form>);
       }
@@ -335,8 +335,8 @@ select.input {
                     <td className="muted">{i.dueAt ? DATE_FMT.format(i.dueAt) : "–"}</td>
                     <td>{i.streak ?? 0}</td>
                     <td>
-                      <button className="btn ghost" onClick={()=>toggle(i.id)}>{i.suspended ? "Reaktivieren" : "Pausieren"}</button>
-                      <button className="btn ghost" onClick={()=>del(i.id)}>Löschen</button>
+                      <button className="speaker-icon" onClick={()=>toggle(i.id)}>{i.suspended ? "Reaktivieren" : "Pausieren"}</button>
+                      <button className="speaker-icon" onClick={()=>del(i.id)}>Löschen</button>
                     </td>
                   </tr>
                 ))}
@@ -362,8 +362,8 @@ select.input {
           <div className="card">
             <h3>Daten</h3>
             <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
-              <button className="btn ghost" onClick={exportData}>Export als JSON</button>
-              <button className="btn ghost" onClick={()=>{ if (confirm('Alle Daten löschen?')) setItems([]) }}>Alles löschen</button>
+              <button className="speaker-icon" onClick={exportData}>Export als JSON</button>
+              <button className="speaker-icon" onClick={()=>{ if (confirm('Alle Daten löschen?')) setItems([]) }}>Alles löschen</button>
             </div>
             <div style={{marginTop:10}}>
               <label>JSON importieren</label>
