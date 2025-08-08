@@ -1,8 +1,6 @@
-/* Parola – React App (no Service Worker, clean split) */
+/* Parola – minimal app (focus on table + learn views) */
 const { useState, useEffect, useMemo } = React;
-
-const LS_KEY = "parola:clean";
-const DATE_FMT = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+const LS_KEY = "parola:full-polish";
 const now = () => Date.now();
 const minutes = (n) => n * 60 * 1000;
 const days = (n) => n * 24 * 60 * 60 * 1000;
@@ -28,7 +26,6 @@ const Tabs = ({ tab, setTab }) => {
 };
 
 const LearnView = ({ items, setItems }) => {
-  const [mode, setMode] = useState("flashcards");
   const [direction, setDirection] = useState("it-de");
   const [idx, setIdx] = useState(0);
   const [reveal, setReveal] = useState(false);
@@ -40,77 +37,20 @@ const LearnView = ({ items, setItems }) => {
   const a = direction === "it-de" ? current.de : current.it;
   const mark = (res) => { setItems(prev => prev.map(it => it.id===current.id ? scheduleNext(it, res) : it)); setReveal(false); setIdx(i=>i+1); };
   return (<div className="grid">
-    <div className="card">
-      <div style={{display:'flex', gap:8, alignItems:'center', justifyContent:'space-between'}}>
-        <div style={{display:'flex', gap:8, alignItems:'center'}}>
-          <span className="chip">Modus</span>
-          <select value={mode} onChange={e=>setMode(e.target.value)} className="input" style={{width:'auto'}}>
-            <option value="flashcards">Flashcards</option>
-            <option value="mc">Multiple Choice</option>
-            <option value="typing">Tippen</option>
-          </select>
-        </div>
-        <div style={{display:'flex', gap:8, alignItems:'center'}}>
-          <span className="chip">Richtung</span>
-          <select value={direction} onChange={e=>setDirection(e.target.value)} className="input" style={{width:'auto'}}>
-            <option value="it-de">Italienisch → Deutsch</option>
-            <option value="de-it">Deutsch → Italienisch</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    {mode === "flashcards" && (
-      <div className="card" style={{textAlign:'center'}}>
-        <div className="muted" style={{marginBottom:8}}>{direction === 'it-de' ? 'Frage (IT)' : 'Frage (DE)'} – Intervall: {formatInterval(INTERVALS[current.intervalIndex ?? 0])}</div>
-        <div style={{fontSize:32, fontWeight:800,fontFamily:'Nunito'}}>{q}</div>
-        <button className="speaker-icon" aria-label="Vorlesen" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}>
-          <svg className="icon-audio" viewBox="0 0 24 24" width="36" height="36" aria-hidden="true">
-            <path fill="currentColor" d="M3 10v4h3l4 4V6L6 10H3zm13.5 2a4.5 4.5 0 0 0-2.06-3.78l-.44.9a3.5 3.5 0 0 1 0 5.76l.44.9A4.5 4.5 0 0 0 16.5 12zm3 0c0-3.04-1.72-5.66-4.25-7.01l-.44.9C17 7.04 18.5 9.32 18.5 12s-1.5 4.96-3.69 6.11l.44.9C20.28 17.66 22 15.04 22 12z"/>
-          </svg>
-        </button>
-        {reveal && <div style={{marginTop:10, fontSize:22}}><b>Antwort:</b> {a}</div>}
-        <div style={{marginTop:14}}><button className="btn ghost" onClick={()=>setReveal(r=>!r)}>{reveal ? "Vorderseite" : "Auflösung zeigen"}</button></div>
-        <div style={{display:'flex', gap:8, marginTop:16}}>
-          <button className="btn ghost" onClick={()=>mark('again')}>Wiederholen</button>
-          <button className="btn primary" onClick={()=>mark('good')}>Gewusst</button>
-        </div>
-      </div>
-    )}
-    {mode === "mc" && <MultipleChoice current={current} direction={direction} a={a} q={q} items={items} onResult={(res)=>mark(res)} /> }
-    {mode === "typing" && <Typing current={current} direction={direction} a={a} q={q} onResult={(res)=>mark(res)} /> }
-  </div>);
-};
-
-const MultipleChoice = ({ current, q, a, items, direction, onResult }) => {
-  const { useState, useMemo } = React;
-  const options = useMemo(() => { const pool = shuffle(items.filter(i=>i.id!==current.id)).slice(0,3).map(i => direction==='it-de' ? i.de : i.it); return shuffle([a, ...pool]); }, [current.id, items, a, direction]);
-  const [done, setDone] = useState(false);
-  const pick = (opt) => { if (done) return; setDone(true); onResult(norm(opt)===norm(a) ? 'good' : 'again'); };
-  return (<div className="card" style={{textAlign:'center'}}>
-    <div className="muted" style={{marginBottom:8}}>Multiple Choice – Frage</div>
-    <div style={{fontSize:32,fontWeight:800,fontFamily:'Nunito'}}>{q}</div>
-    <div style={{display:'grid', gap:8, marginTop:16}}>{options.map(opt => (<button key={opt} className="btn ghost" onClick={()=>pick(opt)}>{opt}</button>))}</div>
-  </div>);
-};
-
-const Typing = ({ q, a, onResult, direction, current }) => {
-  const { useState } = React;
-  const [val, setVal] = useState(""); const [feedback, setFeedback] = useState(null);
-  const submit = (e) => { e.preventDefault(); const ok = norm(val) === norm(a); setFeedback(ok ? "Richtig!" : ("Gesucht: " + a)); onResult(ok ? 'good' : 'again'); };
-  return (<form className="card" onSubmit={submit} style={{textAlign:'center'}}>
-    <div className="muted" style={{marginBottom:8}}>Tippe die Übersetzung</div>
-    <div style={{fontSize:32,fontWeight:800,fontFamily:'Nunito'}}>{q}</div>
-    <div style={{marginTop:12}}><input className="input" autoFocus value={val} onChange={e=>setVal(e.target.value)} placeholder="Antwort eingeben..." /></div>
-    <div style={{display:'flex', gap:8, justifyContent:'center', marginTop:12}}>
-      <button className="btn primary" type="submit">Prüfen</button>
-      <button className="speaker-icon" type="button" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}>
-        <svg className="icon-audio" viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-          <path fill="currentColor" d="M3 10v4h3l4 4V6L6 10H3zm13.5 2a4.5 4.5 0 0 0-2.06-3.78l-.44.9a3.5 3.5 0 0 1 0 5.76l.44.9A4.5 4.5 0 0 0 16.5 12zm3 0c0-3.04-1.72-5.66-4.25-7.01l-.44.9C17 7.04 18.5 9.32 18.5 12s-1.5 4.96-3.69 6.11l.44.9C20.28 17.66 22 15.04 22 12z"/>
-        </svg>
+    <div className="card" style={{textAlign:'center'}}>
+      <div className="muted" style={{marginBottom:8}}>{direction === 'it-de' ? 'Frage (IT)' : 'Frage (DE)'} – Intervall: 10 min …</div>
+      <div style={{fontSize:32, fontWeight:800,fontFamily:'Nunito'}}>{q}</div>
+      <button className="speaker-icon" aria-label="Vorlesen" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}>
+        <img src="assets/Hear-Icon.svg" alt="Hören">
       </button>
+      {reveal && <div style={{marginTop:10, fontSize:22}}><b>Antwort:</b> {a}</div>}
+      <div style={{display:'flex', gap:8, marginTop:16, justifyContent:'center'}}>
+        <button className="btn ghost" onClick={()=>setReveal(r=>!r)}>{reveal ? "Vorderseite" : "Auflösung zeigen"}</button>
+        <button className="btn ghost" onClick={()=>mark('again')}>Wiederholen</button>
+        <button className="btn primary" onClick={()=>mark('good')}>Gewusst</button>
+      </div>
     </div>
-    {feedback && <div style={{marginTop:12}} className="chip">{feedback}</div>}
-  </form>);
+  </div>);
 };
 
 const AddView = ({ onAdd }) => {
@@ -149,7 +89,7 @@ const ListView = ({ items, setItems }) => {
             <tr key={i.id}>
               <td><b>{i.it}</b></td>
               <td>{i.de}</td>
-              <td className="muted">{i.dueAt ? DATE_FMT.format(i.dueAt) : "–"}</td>
+              <td className="muted">{i.dueAt ? new Date(i.dueAt).toLocaleString() : "–"}</td>
               <td>{i.streak ?? 0}</td>
               <td>
                 <button className="btn ghost" onClick={()=>toggle(i.id)}>{i.suspended ? "Reaktivieren" : "Pausieren"}</button>
@@ -208,7 +148,5 @@ const App = () => {
     <div className="muted">Speicherung lokal im Browser. Für Backups: Einstellungen → Export.</div>
   </div>);
 };
-
-const formatInterval = (ms) => { if (ms < 3600000) return Math.round(ms/60000)+' min'; if (ms < 86400000) return Math.round(ms/3600000)+' h'; return Math.round(ms/86400000)+' d'; };
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);

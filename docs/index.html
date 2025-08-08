@@ -10,12 +10,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="style.css">
-    <!-- React + Babel (compiles app.jsx in the browser) -->
+    <!-- Style with cachebuster -->
+    <link rel="stylesheet" href="style.css?v=polish2">
+
+    <!-- React + Babel -->
     <script defer src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script defer src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script defer src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script defer type="text/babel" src="app.jsx"></script>
+    <script defer type="text/babel" src="app.jsx?v=polish2"></script>
   </head>
   <body>
     <header class="app-header">
