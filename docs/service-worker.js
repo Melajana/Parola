@@ -1,5 +1,5 @@
 // cache v2 for style changes
-const CACHE = 'parola-style-v6';
+const CACHE = 'parola-style-v7';
 const ASSETS = ['.', 'index.html', 'manifest.json'];
 
 self.addEventListener('install', e => {

@@ -156,6 +156,23 @@ select.input {
   .speaker-btn .icon-speaker { width: 24px; height: 24px; }
 }
 
+    
+/* --- Speaker icon v7 (icon only, no background) --- */
+.speaker-icon {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 12px auto 0 !important;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: #222222; /* icon color via currentColor */
+}
+.speaker-icon .icon-audio { display:block; }
+.speaker-icon:active { transform: scale(0.98); }
+@media (max-width: 640px) {
+  .speaker-icon svg { width: 32px; height: 32px; }
+}
+
     </style>
     <script defer src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script defer src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -237,7 +254,7 @@ select.input {
             <div className="card" style={{textAlign:'center'}}>
               <div className="muted" style={{marginBottom:8}}>{direction === 'it-de' ? 'Frage (IT)' : 'Frage (DE)'} – Intervall: {formatInterval(INTERVALS[current.intervalIndex ?? 0])}</div>
               <div style={{fontSize:32, fontWeight:700,fontFamily:'Ubuntu'}}>{q}</div>
-              <button className="speaker-btn" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}><span class="icon-speaker" aria-hidden="true" alt="Vorlesen" /><span class="sr-only">Vorlesen</span></button>
+              <button className="speaker-icon" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}><span class="icon-speaker" aria-hidden="true" alt="Vorlesen" /><span class="sr-only">Vorlesen</span></button>
               {reveal && <div style={{marginTop:10, fontSize:22}}><b>Antwort:</b> {a}</div>}
               <div style={{marginTop:14}}><button className="btn ghost" onClick={()=>setReveal(r=>!r)}>{reveal ? "Vorderseite" : "Auflösung zeigen"}</button></div>
               <div style={{display:'flex', gap:8, marginTop:16}}>
@@ -273,7 +290,7 @@ select.input {
           <div style={{marginTop:12}}><input className="input" autoFocus value={val} onChange={e=>setVal(e.target.value)} placeholder="Antwort eingeben..." /></div>
           <div style={{display:'flex', gap:8, justifyContent:'center', marginTop:12}}>
             <button className="btn primary" type="submit">Prüfen</button>
-            <button className="speaker-btn" type="button" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}>🔊 Vorlesen</button>
+            <button className="speaker-icon" type="button" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}>🔊 Vorlesen</button>
           </div>
           {feedback && <div style={{marginTop:12}} className="chip">{feedback}</div>}
         </form>);
