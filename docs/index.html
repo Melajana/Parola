@@ -84,7 +84,39 @@ textarea:focus {
     box-shadow: 0 0 4px rgba(131, 201, 201, 0.6) !important;
 }
 
-    </style>
+    
+/* --- Parola UI polish v4 --- */
+.chip {
+  background: var(--clr-mint) !important;
+  color: var(--clr-ink) !important;
+  border: 1px solid rgba(131,201,201,0.6) !important; /* teal border */
+  font-weight: 700 !important;
+}
+
+select.input {
+  padding-right: 34px !important;
+  border-color: rgba(131,201,201,0.8) !important;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%2383C9C9' d='M5.5 7l4.5 6 4.5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+}
+
+/* Prominent speaker button */
+.speaker-btn {
+  background: var(--clr-ink) !important;
+  color: #fff !important;
+  width: 40px; height: 40px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9999px !important;
+  border: none !important;
+  margin-left: 8px;
+}
+.speaker-btn img { width: 18px; height: 18px; filter: invert(1) brightness(2); }
+
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
     <script defer src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script defer src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script defer src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -165,7 +197,7 @@ textarea:focus {
             <div className="card" style={{textAlign:'center'}}>
               <div className="muted" style={{marginBottom:8}}>{direction === 'it-de' ? 'Frage (IT)' : 'Frage (DE)'} – Intervall: {formatInterval(INTERVALS[current.intervalIndex ?? 0])}</div>
               <div style={{fontSize:32, fontWeight:700,fontFamily:'Ubuntu'}}>{q}</div>
-              <button className="btn ghost speaker" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}>🔊</button>
+              <button className="btn ghost speaker" onClick={()=>speak(direction==='it-de' ? current.it : current.de, direction==='it-de' ? 'it-IT' : 'de-DE')}><img src="assets/Hear-Icon.svg" alt="Vorlesen" /><span class="sr-only">Vorlesen</span></button>
               {reveal && <div style={{marginTop:10, fontSize:22}}><b>Antwort:</b> {a}</div>}
               <div style={{marginTop:14}}><button className="btn ghost" onClick={()=>setReveal(r=>!r)}>{reveal ? "Vorderseite" : "Auflösung zeigen"}</button></div>
               <div style={{display:'flex', gap:8, marginTop:16}}>
