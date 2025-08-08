@@ -1,0 +1,44 @@
+/* ---- Theme: Light/Dark, clean structure ---- */
+:root { --bg:#fff; --text:#111; --surface:#fff; --border:#e6e6e6; --accent:#111; --accent-ghost:#f2f2f2; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0f0f10; --text:#f5f5f5; --surface:#151517; --border:#2a2a2d; --accent:#fff; --accent-ghost:#222326; }
+}
+html,body { background:var(--bg); color:var(--text); }
+body { margin:0; font:16px/1.45 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+.container { max-width: 1000px; margin: 0 auto; padding: 16px; }
+
+/* Header */
+.app-header { position:sticky; top:0; background:#111; border-bottom:2px solid #111; }
+@media (prefers-color-scheme: dark){ .app-header{ background:#0f0f10; border-bottom-color:#0f0f10; } }
+.header-inner { display:flex; align-items:center; gap:12px; padding:12px 16px; }
+.logo { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,#111,#444); display:grid; place-items:center; color:#fff; font-weight:800; font-family:'Nunito','Inter'; }
+
+/* Cards / layout */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:0 2px 8px rgba(0,0,0,.04); padding:24px; }
+.grid { display:grid; gap:16px }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px }
+@media (max-width: 680px) { .grid-2 { grid-template-columns: 1fr } }
+.muted { color: rgba(0,0,0,.55) } @media (prefers-color-scheme: dark){ .muted{ color: rgba(255,255,255,.6) } }
+
+/* Controls */
+.btn { border:1px solid #0000; background:#fff; padding:10px 18px; border-radius:9999px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,.08); font-family:'Nunito','Inter'; font-weight:800; }
+.btn.primary { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+.btn.ghost { background:var(--accent-ghost); color:var(--text); border:1px solid var(--border); }
+.tabs { display:flex; gap:8px; margin:12px 0 16px }
+.tabs button { border-radius:9999px; padding:8px 14px; font-family:'Nunito','Inter'; font-weight:800; background:var(--accent-ghost); border:1px solid var(--border) }
+.tabs button.active { background:var(--accent); color:var(--bg); border-color:var(--accent); }
+
+/* Inputs */
+label { display:flex; flex-direction:column; gap:6px }
+.input, select, textarea { padding:10px 12px; border-radius:9999px; border:1px solid var(--border); width:100%; background:var(--surface); color:var(--text); box-sizing:border-box; }
+.input::placeholder, textarea::placeholder { color: rgba(0,0,0,.45) } @media (prefers-color-scheme: dark){ .input::placeholder, textarea::placeholder{ color: rgba(255,255,255,.5) } }
+table { width:100%; border-collapse:collapse } th,td { padding:10px; border-top:1px solid var(--border); text-align:left }
+
+/* Chips */
+.chip { display:inline-block; padding:4px 12px; border-radius:9999px; background:var(--accent-ghost); border:1px solid var(--border); font-family:'Nunito','Inter'; font-weight:800; }
+
+/* Speaker icon button (icon only) */
+.speaker-icon { background:transparent; border:0; padding:0; margin:12px auto 0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
+.speaker-icon:active { transform: scale(0.98); }
+
+h1,h2,h3 { font-family:'Nunito','Inter'; font-weight:800 }
