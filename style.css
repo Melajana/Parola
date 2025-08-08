@@ -1,0 +1,71 @@
+body {
+    font-family: 'Airbnb Cereal', Arial, sans-serif;
+    background-color: white;
+    color: black;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    padding: 1rem;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.vocab-table {
+    width: 90%;
+    margin: 2rem auto;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.vocab-table thead th {
+    background: #f5f5f5;
+    padding: 10px;
+    border-radius: 6px;
+    text-align: left;
+}
+
+.vocab-table tbody td {
+    background: #fafafa;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.vocab-table tbody tr {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    margin: 0 4px;
+}
+
+.btn.pause {
+    background-color: #7dc2b8;
+    color: white;
+}
+
+.btn.delete {
+    background-color: #d9534f;
+    color: white;
+}
+
+.audio-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.audio-button img {
+    width: 50px;
+    height: 50px;
+    filter: invert(35%) sepia(30%) saturate(400%) hue-rotate(120deg);
+    cursor: pointer;
+}
