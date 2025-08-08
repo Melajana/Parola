@@ -1,6 +1,6 @@
 {
-  "name": "Italienisch Vokabeltrainer",
-  "short_name": "Vokabeltrainer",
+  "name": "Parola \u2013 Italienisch Vokabeltrainer",
+  "short_name": "Parola",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#FFFFF2",
