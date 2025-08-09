@@ -44,3 +44,58 @@ td.success-cell{font-weight:700}.success-cell.ok{color:var(--ok)}.success-cell.m
 /* Inline edit */
 .due-edit{display:flex;gap:8px;align-items:center}
 .due-input{padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+/* Erweiterte Lernmodi */
+.type-feedback{margin-top:12px;padding:12px;border-radius:12px;font-weight:600}
+.type-feedback.ok{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok);border:1px solid var(--ok)}
+.type-feedback.bad{background:color-mix(in srgb,var(--bad) 20%,transparent);color:var(--bad);border:1px solid var(--bad)}
+.conjugation-box,.preposition-box{margin-top:16px}
+.prep-options button{padding:8px 16px;margin:4px;font-size:14px}
+.prep-options button.selected{background:var(--accent);color:var(--bg)}
+.prep-options button.correct{background:var(--ok);color:white}
+.prep-options button.wrong{background:var(--bad);color:white}
+/* Multiple Choice erweitert */
+.mc-option{padding:12px 20px;margin:8px;border:1px solid var(--border);background:var(--surface);border-radius:12px;cursor:pointer;transition:all 0.2s}
+.mc-option:hover{background:var(--ghost)}
+.mc-option.correct{background:var(--ok);color:white;border-color:var(--ok)}
+.mc-option.wrong{background:var(--bad);color:white;border-color:var(--bad)}
+/* Kartentyp-Anzeige */
+.card-type-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;margin-left:8px}
+.badge-vocab{background:var(--accent);color:var(--bg)}
+.badge-prep{background:var(--ok);color:white}
+.badge-verb{background:#1976d2;color:white}
+.badge-article{background:#9c27b0;color:white}
+/* Neue Lernmodi */
+.article-options{display:flex;gap:12px;justify-content:center;margin:16px 0}
+.article-options button{padding:12px 20px;font-size:18px;font-weight:700}
+.article-options button.correct{background:var(--ok);color:white}
+.article-options button.wrong{background:var(--bad);color:white}
+.gaptext-box{margin-top:16px}
+.gaptext-input{width:100%;max-width:300px;margin:0 auto}
+/* Gamification */
+.goal-progress{position:relative;overflow:hidden}
+.goal-progress::after{content:'';position:absolute;bottom:0;left:0;height:4px;background:var(--ok);width:var(--progress,0%);transition:width 0.3s ease}
+.category-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0}
+.category-stat{background:var(--ghost);border:1px solid var(--border);border-radius:12px;padding:12px}
+.category-stat h5{margin:0 0 8px 0;font-size:14px}
+.category-progress{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:8px 0}
+.category-progress-bar{height:100%;background:var(--ok);transition:width 0.3s ease}
+.achievements{display:flex;gap:8px;flex-wrap:wrap}
+.achievement{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:var(--ghost);border:1px solid var(--border);border-radius:12px;font-size:14px}
+.achievement.earned{background:color-mix(in srgb,var(--ok) 20%,transparent);border-color:var(--ok)}
+.achievement-icon{font-size:18px}
+/* Achievement Notifications */
+.achievement-notification{position:fixed;top:20px;right:20px;z-index:1000;animation:slideInRight 0.5s ease,slideOutRight 0.5s ease 3.5s forwards}
+.achievement-popup{background:color-mix(in srgb,var(--ok) 95%,transparent);border:2px solid var(--ok);border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.15);display:flex;align-items:center;gap:12px;max-width:300px}
+.achievement-popup .achievement-icon{font-size:24px}
+@keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
+/* Audio Controls */
+.audio-controls{display:flex;gap:12px;align-items:center;margin:12px 0}
+.speak-btn-inline{background:transparent;border:0;padding:4px;cursor:pointer;opacity:0.7;transition:opacity 0.2s}
+.speak-btn-inline:hover{opacity:1}
+.speak-btn-inline img{width:20px;height:20px}
+/* Level System */
+.level-progress{margin-top:8px}
+.level-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.level-fill{height:100%;background:linear-gradient(90deg,var(--ok),#81c784);transition:width 0.3s ease}
+.level-text{font-size:12px;color:var(--muted);margin-top:4px}

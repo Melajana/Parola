@@ -21,25 +21,57 @@
 
 <main class="container">
   <nav class="tabs" id="tabs">
-    <button class="btn active" data-tab="learn">Lernen</button>
-    <button class="btn" data-tab="list">Vokabeln</button>
+    <button class="btn" data-tab="learn">Lernen</button>
+    <button class="btn active" data-tab="list">Vokabeln</button>
     <button class="btn" data-tab="add">Hinzufügen</button>
     <button class="btn" data-tab="settings">Einstellungen</button>
   </nav>
 
   <!-- Learn -->
-  <section class="card view center" id="view-learn">
+  <section class="card view center" id="view-learn" hidden>
     <div class="learn-controls">
       <span class="chip">Modus</span>
       <select id="modeSelect" class="input input-compact">
         <option value="flashcards">Karteikarten</option>
         <option value="mc">Multiple Choice</option>
         <option value="type">Tippen</option>
+        <option value="conjugation">Verb-Konjugation</option>
+        <option value="preposition">Präposition im Kontext</option>
+        <option value="articles">Artikel-Training</option>
+        <option value="gaptext">Lückentext</option>
       </select>
       <span class="chip" style="margin-left:12px">Richtung</span>
       <select id="dirSelect" class="input input-compact">
         <option value="it-de">Italienisch → Deutsch</option>
         <option value="de-it">Deutsch → Italienisch</option>
+      </select>
+    </div>
+    <div class="learn-controls">
+      <span class="chip">Kartentyp</span>
+      <select id="cardTypeSelect" class="input input-compact">
+        <option value="all">Alle</option>
+        <option value="vocab">Vokabeln</option>
+        <option value="prep">Präpositionen</option>
+        <option value="verb">Verben</option>
+        <option value="article">Artikel</option>
+      </select>
+      <span class="chip" style="margin-left:12px">Kategorie</span>
+      <select id="categorySelect" class="input input-compact">
+        <option value="all">Alle</option>
+        <option value="greetings">Begrüßungen</option>
+        <option value="food">Essen</option>
+        <option value="family">Familie</option>
+        <option value="grammar">Grammatik</option>
+        <option value="verbs">Verben</option>
+        <option value="articles">Artikel</option>
+      </select>
+    </div>
+    <div class="learn-controls" id="verbTenseControls" style="display:none">
+      <span class="chip">Verb-Zeit</span>
+      <select id="verbTenseSelect" class="input input-compact">
+        <option value="presente">Presente</option>
+        <option value="passato_prossimo">Passato Prossimo</option>
+        <option value="imperfetto">Imperfetto</option>
       </select>
     </div>
     <div class="muted" id="learnMeta" style="margin-bottom:8px">—</div>
@@ -54,6 +86,46 @@
         <button class="btn primary clickfx" id="typeCheckBtn">Prüfen</button>
       </div>
       <div id="typeFeedback" class="type-feedback" style="display:none"></div>
+    </div>
+
+    <!-- Verb-Konjugation -->
+    <div id="conjugationBox" class="conjugation-box" style="display:none">
+      <div class="muted" style="margin-bottom:12px">Konjugiere das Verb im Präsens:</div>
+      <div id="conjugationPronoun" class="word" style="font-size:24px;margin-bottom:12px">—</div>
+      <input id="conjugationInput" class="input" placeholder="Konjugierte Form eingeben…"/>
+      <div class="actions">
+        <button class="btn ghost clickfx" id="conjRevealBtn">Auflösung zeigen</button>
+        <button class="btn primary clickfx" id="conjCheckBtn">Prüfen</button>
+      </div>
+      <div id="conjFeedback" class="type-feedback" style="display:none"></div>
+    </div>
+
+    <!-- Präposition im Kontext -->
+    <div id="prepositionBox" class="preposition-box" style="display:none">
+      <div class="muted" style="margin-bottom:12px">Welche Präposition passt?</div>
+      <div id="prepositionContext" class="word" style="font-size:20px;margin-bottom:12px">—</div>
+      <div class="prep-options" id="prepOptions" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
+      <div id="prepFeedback" class="type-feedback" style="display:none;margin-top:12px"></div>
+    </div>
+
+    <!-- Artikel-Training -->
+    <div id="articleBox" class="article-box" style="display:none">
+      <div class="muted" style="margin-bottom:12px">Welcher Artikel passt?</div>
+      <div id="articleWord" class="word" style="font-size:28px;margin-bottom:12px">ragazzo</div>
+      <div class="article-options" id="articleOptions" style="display:flex;gap:12px;justify-content:center;margin-bottom:16px"></div>
+      <div id="articleFeedback" class="type-feedback" style="display:none"></div>
+    </div>
+
+    <!-- Lückentext -->
+    <div id="gaptextBox" class="gaptext-box" style="display:none">
+      <div class="muted" style="margin-bottom:12px">Ergänze den Satz:</div>
+      <div id="gaptextSentence" class="word" style="font-size:20px;margin-bottom:16px">Io ___ a casa</div>
+      <input id="gaptextInput" class="input" placeholder="Antwort eingeben..." style="margin-bottom:12px"/>
+      <div class="actions">
+        <button class="btn ghost clickfx" id="gaptextRevealBtn">Auflösung zeigen</button>
+        <button class="btn primary clickfx" id="gaptextCheckBtn">Prüfen</button>
+      </div>
+      <div id="gaptextFeedback" class="type-feedback" style="display:none"></div>
     </div>
 
     <!-- Flashcard / MC -->
@@ -73,13 +145,45 @@
 
   <!-- Add -->
   <section class="card view" id="view-add" hidden>
-    <div class="grid grid-2">
-      <label>Italienisch <input id="itInput" class="input" placeholder="ragazzo"></label>
-      <label>Deutsch <input id="deInput" class="input" placeholder="Junge"></label>
+    <div style="margin-bottom:16px">
+      <label style="display:block;margin-bottom:8px">Kartentyp</label>
+      <select id="addTypeSelect" class="input input-compact">
+        <option value="vocab">Vokabel</option>
+        <option value="prep">Präposition</option>
+        <option value="verb">Verb</option>
+      </select>
     </div>
-    <label style="display:block; margin-top:10px;">Notizen (optional)
-      <input id="notesInput" class="input" placeholder="Plural: ragazzi">
-    </label>
+
+    <!-- Vokabel/Präposition Form -->
+    <div id="basicForm">
+      <div class="grid grid-2">
+        <label>Italienisch <input id="itInput" class="input" placeholder="ragazzo / a / essere"></label>
+        <label>Deutsch <input id="deInput" class="input" placeholder="Junge / zu, nach / sein"></label>
+      </div>
+      <label style="display:block; margin-top:10px;">Notizen (optional)
+        <input id="notesInput" class="input" placeholder="Plural: ragazzi / Ortsangabe / Hilfsverb">
+      </label>
+    </div>
+
+    <!-- Verb Form -->
+    <div id="verbForm" style="display:none">
+      <label style="display:block;margin-bottom:10px">Infinitiv (Italienisch)
+        <input id="verbInfinitive" class="input" placeholder="parlare">
+      </label>
+      <label style="display:block;margin-bottom:10px">Bedeutung (Deutsch)
+        <input id="verbMeaning" class="input" placeholder="sprechen">
+      </label>
+      <div class="muted" style="margin-bottom:8px">Präsens-Konjugation:</div>
+      <div class="grid grid-2" style="gap:8px">
+        <label style="font-size:14px">io <input id="conj_io" class="input input-compact" placeholder="parlo"></label>
+        <label style="font-size:14px">tu <input id="conj_tu" class="input input-compact" placeholder="parli"></label>
+        <label style="font-size:14px">lui/lei <input id="conj_lui" class="input input-compact" placeholder="parla"></label>
+        <label style="font-size:14px">noi <input id="conj_noi" class="input input-compact" placeholder="parliamo"></label>
+        <label style="font-size:14px">voi <input id="conj_voi" class="input input-compact" placeholder="parlate"></label>
+        <label style="font-size:14px">loro <input id="conj_loro" class="input input-compact" placeholder="parlano"></label>
+      </div>
+    </div>
+
     <div class="actions">
       <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
       <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
@@ -87,7 +191,7 @@
   </section>
 
   <!-- List -->
-  <section class="card view" id="view-list" hidden>
+  <section class="card view" id="view-list">
     <div class="list-controls">
       <input id="searchInput" class="input" placeholder="Suchen…"/>
       <select id="statusFilter" class="input input-compact">
@@ -127,6 +231,29 @@
       <label>Neue Karten pro Sitzung <input id="newPerSession" type="number" class="input" value="10"></label>
       <label>Max. Wiederholungen pro Sitzung <input id="maxReviews" type="number" class="input" value="100"></label>
     </div>
+    <div class="grid grid-2" style="margin-top:12px">
+      <label>Fehler‑Toleranz (Tippen)
+        <select id="toleranceSelect" class="input">
+          <option value="0">Streng (0 %)</option>
+          <option value="10">Mittel (10 %)</option>
+          <option value="20" selected>Locker (20 %)</option>
+        </select>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="autoSpeakCheck" type="checkbox" style="margin:0">
+        Auto-Aussprache aktivieren
+      </label>
+    </div>
+    <div class="grid grid-2" style="margin-top:12px">
+      <label>Sprechgeschwindigkeit
+        <select id="speechRateSelect" class="input">
+          <option value="0.6">Langsam</option>
+          <option value="0.8" selected>Normal</option>
+          <option value="1.0">Schnell</option>
+        </select>
+      </label>
+      <button id="testSpeechBtn" class="btn ghost">Aussprache testen</button>
+    </div>
     <div class="actions wrap">
       <button id="exportBtn" class="btn ghost clickfx">Export als JSON</button>
       <label class="file-btn btn ghost clickfx">JSON importieren <input id="fileJson" type="file" accept="application/json" hidden></label>
@@ -144,12 +271,26 @@
       </label>
     </div>
 
-    <h3 style="margin-top:16px;">Statistik</h3>
+    <h3 style="margin-top:16px;">Statistik & Ziele</h3>
+    <div class="grid grid-2" style="margin-bottom:16px">
+      <label>Tägliches Ziel <input id="dailyGoalInput" type="number" class="input" value="20" min="5" max="100"></label>
+      <div class="stat goal-progress">
+        <div class="stat-num" id="goalProgress">0/20</div>
+        <div class="stat-label">Heute gelernt</div>
+      </div>
+    </div>
     <div id="statsRow" class="stats-row">
       <div class="stat"><div class="stat-num" id="statToday">0</div><div class="stat-label">Heute gelernt</div></div>
       <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Gesamt gelernt</div></div>
       <div class="stat"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Aktueller Streak</div></div>
+      <div class="stat"><div class="stat-num" id="statLevel">1</div><div class="stat-label">Level</div></div>
     </div>
+    
+    <h4 style="margin-top:16px;">Kategorie-Performance</h4>
+    <div id="categoryStats" class="category-stats"></div>
+    
+    <h4 style="margin-top:16px;">Erfolge 🏆</h4>
+    <div id="achievementsList" class="achievements"></div>
     <canvas id="statsChart" width="600" height="160" class="stats-chart"></canvas>
     <div class="muted" style="margin-top:8px">Grün = richtig, Rot = falsch (letzte 7 Tage)</div>
   </section>
