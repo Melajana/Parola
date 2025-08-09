@@ -98,4 +98,10 @@ td.success-cell{font-weight:700}.success-cell.ok{color:var(--ok)}.success-cell.m
 .level-progress{margin-top:8px}
 .level-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
 .level-fill{height:100%;background:linear-gradient(90deg,var(--ok),#81c784);transition:width 0.3s ease}
+
+/* Quick Start Buttons */
+.quick-start-buttons{padding:12px;background:color-mix(in srgb,var(--ghost) 50%,transparent);border-radius:12px;margin:16px 0}
+.btn-sm{padding:8px 12px;font-size:13px;border-radius:8px}
+.quick-start-buttons .btn{min-width:auto}
+.quick-start-buttons .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px color-mix(in srgb,var(--text) 15%,transparent)}
 .level-text{font-size:12px;color:var(--muted);margin-top:4px}

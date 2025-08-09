@@ -69,10 +69,18 @@ verbTenseSelect?.addEventListener('change',()=>{state.settings.verbTense=verbTen
 // Audio Settings
 byId('autoSpeakCheck')?.addEventListener('change',e=>{state.settings.autoSpeak=e.target.checked;save()});
 byId('speechRateSelect')?.addEventListener('change',e=>{state.settings.speechRate=parseFloat(e.target.value);save()});
-byId('testSpeechBtn')?.addEventListener('click',()=>{speakItalian('Ciao, come stai? Io sto bene, grazie!',state.settings.speechRate||0.8)});
 
 // Daily Goal
 byId('dailyGoalInput')?.addEventListener('change',e=>{state.dailyGoal=parseInt(e.target.value)||20;save();renderStats()});
+
+// Quick Start Buttons
+byId('quickFlashcards')?.addEventListener('click',()=>{modeSelect.value='flashcards';state.settings.mode='flashcards';save();updateLearn();updateVerbTenseControls()});
+byId('quickMC')?.addEventListener('click',()=>{modeSelect.value='mc';state.settings.mode='mc';save();updateLearn();updateVerbTenseControls()});
+byId('quickType')?.addEventListener('click',()=>{modeSelect.value='type';state.settings.mode='type';save();updateLearn();updateVerbTenseControls()});
+byId('quickConjugation')?.addEventListener('click',()=>{modeSelect.value='conjugation';state.settings.mode='conjugation';save();updateLearn();updateVerbTenseControls()});
+byId('quickPreposition')?.addEventListener('click',()=>{modeSelect.value='preposition';state.settings.mode='preposition';save();updateLearn();updateVerbTenseControls()});
+byId('quickArticles')?.addEventListener('click',()=>{modeSelect.value='articles';state.settings.mode='articles';save();updateLearn();updateVerbTenseControls()});
+byId('quickGaptext')?.addEventListener('click',()=>{modeSelect.value='gaptext';state.settings.mode='gaptext';save();updateLearn();updateVerbTenseControls()});
 
 function updateVerbTenseControls(){const isConjMode=modeSelect.value==='conjugation';verbTenseControls.style.display=isConjMode?'block':'none'}
 const tbody=byId('tableBody'),searchInput=byId('searchInput'),countTxt=byId('countTxt'),statusFilter=byId('statusFilter'),successFilter=byId('successFilter'),sortSelect=byId('sortBy');
@@ -200,7 +208,7 @@ if(isGap){setupGaptextMode(card);return}
 // Standard Modi (Vokabeln, Flashcards, MC, Type)
 const q=dir()==='it-de'?card.it:card.de;const a=dir()==='it-de'?card.de:card.it;
 if(learnWord)learnWord.textContent=q;
-if(learnMeta)learnMeta.textContent=getModeText()+' – '+getDirText()+getCategoryBadge(card);
+if(learnMeta)learnMeta.innerHTML=getModeText()+' – '+getDirText()+getCategoryBadge(card);
 // Auto-Ausspreche für italienische Wörter
 if(dir()==='it-de'&&state.settings.autoSpeak){autoSpeak(q,true)}
 if(isMC){setupMCMode(card,q,a)}}

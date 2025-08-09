@@ -21,14 +21,14 @@
 
 <main class="container">
   <nav class="tabs" id="tabs">
-    <button class="btn" data-tab="learn">Lernen</button>
-    <button class="btn active" data-tab="list">Vokabeln</button>
+    <button class="btn active" data-tab="learn">Lernen</button>
+    <button class="btn" data-tab="list">Vokabeln</button>
     <button class="btn" data-tab="add">Hinzufügen</button>
     <button class="btn" data-tab="settings">Einstellungen</button>
   </nav>
 
   <!-- Learn -->
-  <section class="card view center" id="view-learn" hidden>
+  <section class="card view center" id="view-learn">
     <div class="learn-controls">
       <span class="chip">Modus</span>
       <select id="modeSelect" class="input input-compact">
@@ -74,6 +74,18 @@
         <option value="imperfetto">Imperfetto</option>
       </select>
     </div>
+    
+    <!-- Schnellstart-Buttons -->
+    <div class="quick-start-buttons" style="margin: 16px 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+      <button class="btn ghost btn-sm" id="quickFlashcards" title="Direkt zu Karteikarten">📚 Karteikarten</button>
+      <button class="btn ghost btn-sm" id="quickMC" title="Direkt zu Multiple Choice">🎯 Multiple Choice</button>
+      <button class="btn ghost btn-sm" id="quickType" title="Direkt zu Tippen">⌨️ Tippen</button>
+      <button class="btn ghost btn-sm" id="quickConjugation" title="Direkt zu Verb-Konjugation">⚡ Verben</button>
+      <button class="btn ghost btn-sm" id="quickPreposition" title="Direkt zu Präpositionen">🔗 Präpositionen</button>
+      <button class="btn ghost btn-sm" id="quickArticles" title="Direkt zu Artikel-Training">🎪 Artikel</button>
+      <button class="btn ghost btn-sm" id="quickGaptext" title="Direkt zu Lückentext">📝 Lückentext</button>
+    </div>
+    
     <div class="muted" id="learnMeta" style="margin-bottom:8px">—</div>
     <div id="learnWord" class="word">—</div>
     <button class="speaker-icon" id="speakBtn" title="Vorlesen"><img src="assets/Hear-Icon.svg" alt="Hören"></button>
@@ -191,7 +203,7 @@
   </section>
 
   <!-- List -->
-  <section class="card view" id="view-list">
+  <section class="card view" id="view-list" hidden>
     <div class="list-controls">
       <input id="searchInput" class="input" placeholder="Suchen…"/>
       <select id="statusFilter" class="input input-compact">
@@ -252,7 +264,6 @@
           <option value="1.0">Schnell</option>
         </select>
       </label>
-      <button id="testSpeechBtn" class="btn ghost">Aussprache testen</button>
     </div>
     <div class="actions wrap">
       <button id="exportBtn" class="btn ghost clickfx">Export als JSON</button>
