@@ -2,7 +2,7 @@
 const LS_KEY='parola:srs11';
 const MIN=60*1000,DAY=24*60*60*1000;
 const INTERVALS=[10*MIN,1*DAY,3*DAY,7*DAY,16*DAY];
-const state=load()||seed();state.settings=Object.assign({newPerSession:10,maxReviews:100,direction:'it-de',mode:'flashcards',tolerance:20,sortBy:'default',autoSpeak:false,speechRate:0.8},state.settings||{});save();
+const state=load()||seed();state.settings=Object.assign({newPerSession:10,maxReviews:100,direction:'it-de',mode:'flashcards',tolerance:20,sortBy:'default',autoSpeak:false,speechRate:0.8,autoFlip:false},state.settings||{});save();
 function load(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch{return null}}
 function save(){localStorage.setItem(LS_KEY,JSON.stringify(state))}
 function uid(){return Math.random().toString(36).slice(2)}
@@ -24,7 +24,7 @@ m('parlare','sprechen','io parlo, tu parli, lui/lei parla, noi parliamo, voi par
 m('mangiare','essen','io mangio, tu mangi, lui/lei mangia, noi mangiamo, voi mangiate, loro mangiano','verb',{infinitive:'mangiare',conjugations:{presente:{io:'mangio',tu:'mangi',lui:'mangia',lei:'mangia',noi:'mangiamo',voi:'mangiate',loro:'mangiano'},passato_prossimo:{io:'ho mangiato',tu:'hai mangiato',lui:'ha mangiato',lei:'ha mangiato',noi:'abbiamo mangiato',voi:'avete mangiato',loro:'hanno mangiato'},imperfetto:{io:'mangiavo',tu:'mangiavi',lui:'mangiava',lei:'mangiava',noi:'mangiavamo',voi:'mangiavate',loro:'mangiavano'}}},'verbs'),
 // Artikel-Training
 m('ragazzo','der Junge','m. - il ragazzo','article',{article:'il',gender:'m',word:'ragazzo'},'articles'),m('ragazza','das Mädchen','f. - la ragazza','article',{article:'la',gender:'f',word:'ragazza'},'articles'),m('studente','der Student','m. - lo studente','article',{article:'lo',gender:'m',word:'studente'},'articles'),m('università','die Universität','f. - l\'università','article',{article:'l\'',gender:'f',word:'università'},'articles')
-],settings:{newPerSession:10,maxReviews:100,direction:'it-de',mode:'flashcards',tolerance:20,sortBy:'default',cardTypes:['vocab','prep','verb','article'],categories:['all','greetings','food','family','grammar','verbs','articles'],verbTenses:['presente','passato_prossimo','imperfetto']},history:[],achievements:[],dailyGoal:20,streak:0}};
+],settings:{newPerSession:10,maxReviews:100,direction:'it-de',mode:'flashcards',tolerance:20,sortBy:'default',cardTypes:['vocab','prep','verb','article'],categories:['all','greetings','food','family','grammar','verbs','articles'],verbTenses:['presente','passato_prossimo','imperfetto'],autoSpeak:false,speechRate:0.8,autoFlip:false},history:[],achievements:[],dailyGoal:20,streak:0}};
 function norm(s){return(s||'').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'').replace(/[^a-z0-9äöüß ]/gi,'').trim()}
 function shuffle(a){return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1])}
 function byId(id){return document.getElementById(id)}
@@ -69,9 +69,22 @@ verbTenseSelect?.addEventListener('change',()=>{state.settings.verbTense=verbTen
 // Audio Settings
 byId('autoSpeakCheck')?.addEventListener('change',e=>{state.settings.autoSpeak=e.target.checked;save()});
 byId('speechRateSelect')?.addEventListener('change',e=>{state.settings.speechRate=parseFloat(e.target.value);save()});
+byId('autoFlipCheck')?.addEventListener('change',e=>{state.settings.autoFlip=e.target.checked;save()});
 
 // Daily Goal
 byId('dailyGoalInput')?.addEventListener('change',e=>{state.dailyGoal=parseInt(e.target.value)||20;save();renderStats()});
+
+// Flashcard Event Listeners
+let autoFlipTimeout=null;
+byId('flashcard')?.addEventListener('click',()=>flipCard());
+byId('hardBtn')?.addEventListener('click',()=>gradeCard('again'));
+byId('againBtn')?.addEventListener('click',()=>gradeCard('again'));
+byId('goodBtn')?.addEventListener('click',()=>gradeCard('good'));
+byId('easyBtn')?.addEventListener('click',()=>gradeCard('good'));
+
+// Old flashcard buttons (fallback)
+byId('oldAgainBtn')?.addEventListener('click',()=>grade('again'));
+byId('oldGoodBtn')?.addEventListener('click',()=>grade('good'));
 
 // Quick Start Buttons
 byId('quickFlashcards')?.addEventListener('click',()=>{modeSelect.value='flashcards';state.settings.mode='flashcards';currentId=null;save();updateLearn();updateVerbTenseControls()});
@@ -221,13 +234,28 @@ if(learnWord)learnWord.textContent=q;
 if(learnMeta)learnMeta.innerHTML=getModeText()+' – '+getDirText()+getCategoryBadge(card);
 // Auto-Ausspreche für italienische Wörter
 if(dir()==='it-de'&&state.settings.autoSpeak){autoSpeak(q,true)}
-if(isMC){setupMCMode(card,q,a)}}
+if(isMC){setupMCMode(card,q,a)}
+if(isFC){setupFlashcardMode(card,q,a)}}
 
 function resetCurrentStates(){currentConjugation=null;currentPrepContext=null;currentArticle=null;currentGaptext=null}
 
 function getCategoryBadge(card){if(!card.category)return'';return' '+getTypeBadge(card.type)}
 
 function setupMCMode(card,q,a){if(!mcBox)return;const pool=shuffle(state.items.filter(i=>i.id!==card.id&&i.type===card.type));const distractors=pool.slice(0,3).map(x=>dir()==='it-de'?x.de:x.it);const options=shuffle([a,...distractors]);mcBox.innerHTML='';options.forEach(opt=>{const b=document.createElement('button');b.type='button';b.className='btn ghost mc-option';b.textContent=opt;b.addEventListener('click',()=>{if(b.classList.contains('correct')||b.classList.contains('wrong'))return;const ok=norm(opt)===norm(a);lastCorrect=ok;b.classList.add(ok?'correct':'wrong');if(!ok){[...mcBox.children].forEach(btn=>{if(norm(btn.textContent)===norm(a))btn.classList.add('correct')})}const nextBtn=byId('nextBtn');if(nextBtn)nextBtn.disabled=false});mcBox.appendChild(b)})}
+
+function setupMCMode(card,q,a){if(!mcBox)return;const pool=shuffle(state.items.filter(i=>i.id!==card.id&&i.type===card.type));const distractors=pool.slice(0,3).map(x=>dir()==='it-de'?x.de:x.it);const options=shuffle([a,...distractors]);mcBox.innerHTML='';options.forEach(opt=>{const b=document.createElement('button');b.type='button';b.className='btn ghost mc-option';b.textContent=opt;b.addEventListener('click',()=>{if(b.classList.contains('correct')||b.classList.contains('wrong'))return;const ok=norm(opt)===norm(a);lastCorrect=ok;b.classList.add(ok?'correct':'wrong');if(!ok){[...mcBox.children].forEach(btn=>{if(norm(btn.textContent)===norm(a))btn.classList.add('correct')})}const nextBtn=byId('nextBtn');if(nextBtn)nextBtn.disabled=false});mcBox.appendChild(b)})}
+
+function setupFlashcardMode(card,q,a){
+    const flashcard = byId('flashcard');
+    const flashcardFront = byId('flashcard-front');
+    const flashcardBack = byId('flashcard-back');
+    
+    if (flashcard) flashcard.classList.remove('flipped');
+    if (flashcardFront) flashcardFront.innerHTML = `<div class="flashcard-word">${q}</div>`;
+    if (flashcardBack) flashcardBack.innerHTML = `<div class="flashcard-word">${a}</div>`;
+    
+    startAutoFlip();
+}
 
 function setupConjugationMode(card){const tense=verbTenseSelect?.value||'presente';if(!card.extra?.conjugations?.[tense])return updateLearn();
 const pronouns=['io','tu','lui','lei','noi','voi','loro'];const pronoun=pronouns[Math.floor(Math.random()*pronouns.length)];currentConjugation={pronoun,card,tense};
@@ -238,16 +266,22 @@ const context=contexts[Math.floor(Math.random()*contexts.length)];const allPreps
 currentPrepContext={context,correct:correctPrep};
 const contextEl=byId('prepositionContext');
 if(contextEl)contextEl.textContent=context;
+if(learnWord)learnWord.textContent=''; // Leeres Hauptwort für Präposition-Modus
 learnMeta.innerHTML='Präposition – Kontext';prepOptions.innerHTML='';prepFeedback.style.display='none';
 options.forEach(prep=>{const btn=document.createElement('button');btn.className='btn ghost';btn.textContent=prep;btn.addEventListener('click',()=>checkPreposition(prep,correctPrep));prepOptions.appendChild(btn)})}
 
 function setupArticleMode(card){if(!card.extra?.article||!card.extra?.word)return updateLearn();
 const articles=['il','la','lo','l\'','i','gli','le'];const correct=card.extra.article;const distractors=shuffle(articles.filter(a=>a!==correct)).slice(0,3);const options=shuffle([correct,...distractors]);
-currentArticle={correct,word:card.extra.word};byId('articleWord').textContent=card.extra.word;learnMeta.textContent='Artikel-Training';articleOptions.innerHTML='';articleFeedback.style.display='none';
+currentArticle={correct,word:card.extra.word};byId('articleWord').textContent=card.extra.word;
+if(learnWord)learnWord.textContent=''; // Leeres Hauptwort für Artikel-Modus
+learnMeta.textContent='Artikel-Training';articleOptions.innerHTML='';articleFeedback.style.display='none';
 options.forEach(article=>{const btn=document.createElement('button');btn.className='btn ghost';btn.textContent=article;btn.addEventListener('click',()=>checkArticle(article,correct));articleOptions.appendChild(btn)})}
 
 function setupGaptextMode(card){const templates=getGaptextTemplates();const template=templates[Math.floor(Math.random()*templates.length)];const answer=generateGaptextAnswer(card,template);
-currentGaptext={template,answer,card};byId('gaptextSentence').textContent=template.sentence.replace('___',answer.blank);learnMeta.textContent='Lückentext – '+template.type;gaptextFeedback.style.display='none';gaptextInput.value='';gaptextInput.focus()}
+const gaptextSentence=byId('gaptextSentence');if(gaptextSentence)gaptextSentence.textContent=template.sentence.replace('___','_____');
+currentGaptext={template,answer:answer.answer,card};
+if(learnWord)learnWord.textContent=''; // Leeres Hauptwort für Lückentext-Modus
+if(learnMeta)learnMeta.textContent='Lückentext – '+template.type;if(gaptextFeedback)gaptextFeedback.style.display='none';if(gaptextInput){gaptextInput.value='';gaptextInput.focus()}}
 
 function checkArticle(selected,correct){const buttons=articleOptions.querySelectorAll('button');buttons.forEach(btn=>{btn.disabled=true;if(btn.textContent===correct){btn.classList.add('correct')}else if(btn.textContent===selected&&selected!==correct){btn.classList.add('wrong')}});
 currentArticle.selected=selected;const ok=selected===correct;articleFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct;articleFeedback.className='type-feedback '+(ok?'ok':'bad');articleFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)}
@@ -308,4 +342,38 @@ function getCategoryName(cat){const names={greetings:'Begrüßungen',food:'Essen
 
 function drawStatsChart(){const ctx=byId('statsChart')?.getContext('2d');if(!ctx)return;ctx.clearRect(0,0,600,160);const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=todayKey(d);const row=state.history.find(x=>x.d===k)||{good:0,bad:0};days.push({label:k.slice(5),good:row.good,bad:row.bad})}const W=600,H=160,pad=24,barW=(W-2*pad)/7*.6;ctx.font='12px Inter, sans-serif';ctx.textBaseline='top';const css=getComputedStyle(document.documentElement);const colT=css.getPropertyValue('--text')||'#000',colG=css.getPropertyValue('--ok')||'#2e7d32',colR=css.getPropertyValue('--bad')||'#c62828';const maxV=Math.max(1,...days.map(d=>d.good+d.bad));days.forEach((d,i)=>{const x=pad+(W-2*pad)/7*i+((W-2*pad)/7-barW)/2;const scale=(H-2*pad)/maxV;const hG=d.good*scale,hB=d.bad*scale;ctx.fillStyle=colR;ctx.fillRect(x,H-pad-hB,barW,hB);ctx.fillStyle=colG;ctx.fillRect(x,H-pad-hB-hG,barW,hG);ctx.fillStyle=colT;ctx.fillText(d.label,x,H-pad+4)})}
 function calcStreak(){let s=0;for(let i=0;i<365;i++){const d=new Date();d.setDate(d.getDate()-i);const k=todayKey(d);const row=state.history.find(x=>x.d===k);if(!row||((row.good||0)+(row.bad||0))===0){if(i===0)continue;break}s++}return s}
+
+// Flashcard functions
+function flipCard() {
+    const flashcard = byId('flashcard');
+    if (flashcard) {
+        flashcard.classList.toggle('flipped');
+        clearTimeout(autoFlipTimeout);
+    }
+}
+
+function startAutoFlip() {
+    if (state.settings.autoFlip) {
+        autoFlipTimeout = setTimeout(() => {
+            const flashcard = byId('flashcard');
+            if (flashcard && !flashcard.classList.contains('flipped')) {
+                flipCard();
+            }
+        }, 3000);
+    }
+}
+
+function gradeCard(grade) {
+    clearTimeout(autoFlipTimeout);
+    grade_(grade);
+    setTimeout(() => {
+        const flashcard = byId('flashcard');
+        if (flashcard) {
+            flashcard.classList.remove('flipped');
+        }
+        currentId = null;
+        updateLearn();
+    }, 300);
+}
+
 renderList();updateLearn();renderStats();

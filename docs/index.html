@@ -140,13 +140,37 @@
     </div>
 
     <!-- Flashcard / MC -->
+    <div id="flashcardContainer" class="flashcard-container" style="display:none">
+      <div id="flashcard" class="flashcard">
+        <div class="flashcard-front">
+          <div>
+            <div id="flashcardWord" class="flashcard-word">ciao</div>
+            <div class="flashcard-hint">Klicken zum Umdrehen</div>
+          </div>
+        </div>
+        <div class="flashcard-back">
+          <div id="flashcardTranslation" class="flashcard-translation">hallo</div>
+        </div>
+      </div>
+      <div id="autoFlipTimer" class="auto-flip-timer" style="display:none">
+        <div id="autoFlipProgress" class="auto-flip-progress"></div>
+      </div>
+      <div class="flashcard-actions" id="flashcardActions">
+        <button class="btn ghost clickfx" id="hardBtn">😰 Schwer</button>
+        <button class="btn ghost clickfx" id="againBtn">🔄 Noch mal</button>
+        <button class="btn primary clickfx" id="goodBtn">✅ Gut</button>
+        <button class="btn primary clickfx" id="easyBtn">😎 Einfach</button>
+      </div>
+    </div>
+
+    <!-- Old Flashcard System (fallback) -->
     <div id="answerBox" class="muted" style="margin-top:10px; font-size:20px; display:none"></div>
     <div id="mcBox" class="mc-box" style="display:none"></div>
 
-    <div class="actions" id="fcActions">
+    <div class="actions" id="fcActions" style="display:none">
       <button class="btn ghost clickfx" id="revealBtn">Auflösung zeigen</button>
-      <button class="btn ghost clickfx" id="againBtn">Wiederholen</button>
-      <button class="btn primary clickfx" id="goodBtn">Gewusst</button>
+      <button class="btn ghost clickfx" id="oldAgainBtn">Wiederholen</button>
+      <button class="btn primary clickfx" id="oldGoodBtn">Gewusst</button>
     </div>
     <div class="actions" id="mcActions" style="display:none">
       <button class="btn ghost clickfx" id="skipBtn">Überspringen</button>
@@ -216,18 +240,22 @@
           <option value="20" selected>Locker (20 %)</option>
         </select>
       </label>
-      <label style="display:flex;align-items:center;gap:8px">
-        <input id="autoSpeakCheck" type="checkbox" style="margin:0">
-        Auto-Aussprache aktivieren
-      </label>
-    </div>
-    <div class="grid grid-2" style="margin-top:12px">
       <label>Sprechgeschwindigkeit
         <select id="speechRateSelect" class="input">
           <option value="0.6">Langsam</option>
           <option value="0.8" selected>Normal</option>
           <option value="1.0">Schnell</option>
         </select>
+      </label>
+    </div>
+    <div class="grid grid-2" style="margin-top:12px">
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="autoSpeakCheck" type="checkbox" style="margin:0">
+        Auto-Aussprache aktivieren
+      </label>
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="autoFlipCheck" type="checkbox" style="margin:0">
+        Karteikarten auto-umdrehen (3s)
       </label>
     </div>
     <div class="actions wrap">
