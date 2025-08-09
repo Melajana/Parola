@@ -60,11 +60,11 @@ const tabsEl=byId('tabs'),views={learn:byId('view-learn'),list:byId('view-list')
 tabsEl.addEventListener('click',e=>{const btn=e.target.closest('button[data-tab]');if(!btn)return;tabsEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));const tab=btn.dataset.tab;Object.entries(views).forEach(([id,el])=>el.hidden=id!==tab);if(tab==='learn')updateLearn();if(tab==='list')renderList();if(tab==='settings')renderStats()});
 const learnWord=byId('learnWord'),learnMeta=byId('learnMeta'),answerBox=byId('answerBox'),dueCounter=byId('dueCounter'),fcActions=byId('fcActions'),mcActions=byId('mcActions'),mcBox=byId('mcBox'),typeBox=byId('typeBox'),typeInput=byId('typeInput'),typeFeedback=byId('typeFeedback'),modeSelect=byId('modeSelect'),dirSelect=byId('dirSelect'),cardTypeSelect=byId('cardTypeSelect'),categorySelect=byId('categorySelect'),verbTenseSelect=byId('verbTenseSelect'),verbTenseControls=byId('verbTenseControls'),conjugationBox=byId('conjugationBox'),conjugationInput=byId('conjugationInput'),conjFeedback=byId('conjFeedback'),prepositionBox=byId('prepositionBox'),prepOptions=byId('prepOptions'),prepFeedback=byId('prepFeedback'),articleBox=byId('articleBox'),articleOptions=byId('articleOptions'),articleFeedback=byId('articleFeedback'),gaptextBox=byId('gaptextBox'),gaptextInput=byId('gaptextInput'),gaptextFeedback=byId('gaptextFeedback');
 modeSelect.value=state.settings.mode;dirSelect.value=state.settings.direction;
-modeSelect.addEventListener('change',()=>{state.settings.mode=modeSelect.value;save();updateLearn();updateVerbTenseControls()});
-dirSelect.addEventListener('change',()=>{state.settings.direction=dirSelect.value;save();updateLearn()});
-cardTypeSelect?.addEventListener('change',()=>{state.settings.cardType=cardTypeSelect.value;save();updateLearn()});
-categorySelect?.addEventListener('change',()=>{state.settings.category=categorySelect.value;save();updateLearn()});
-verbTenseSelect?.addEventListener('change',()=>{state.settings.verbTense=verbTenseSelect.value;save();updateLearn()});
+modeSelect.addEventListener('change',()=>{state.settings.mode=modeSelect.value;currentId=null;save();updateLearn();updateVerbTenseControls()});
+dirSelect.addEventListener('change',()=>{state.settings.direction=dirSelect.value;currentId=null;save();updateLearn()});
+cardTypeSelect?.addEventListener('change',()=>{state.settings.cardType=cardTypeSelect.value;currentId=null;save();updateLearn()});
+categorySelect?.addEventListener('change',()=>{state.settings.category=categorySelect.value;currentId=null;save();updateLearn()});
+verbTenseSelect?.addEventListener('change',()=>{state.settings.verbTense=verbTenseSelect.value;currentId=null;save();updateLearn()});
 
 // Audio Settings
 byId('autoSpeakCheck')?.addEventListener('change',e=>{state.settings.autoSpeak=e.target.checked;save()});
@@ -74,13 +74,13 @@ byId('speechRateSelect')?.addEventListener('change',e=>{state.settings.speechRat
 byId('dailyGoalInput')?.addEventListener('change',e=>{state.dailyGoal=parseInt(e.target.value)||20;save();renderStats()});
 
 // Quick Start Buttons
-byId('quickFlashcards')?.addEventListener('click',()=>{modeSelect.value='flashcards';state.settings.mode='flashcards';save();updateLearn();updateVerbTenseControls()});
-byId('quickMC')?.addEventListener('click',()=>{modeSelect.value='mc';state.settings.mode='mc';save();updateLearn();updateVerbTenseControls()});
-byId('quickType')?.addEventListener('click',()=>{modeSelect.value='type';state.settings.mode='type';save();updateLearn();updateVerbTenseControls()});
-byId('quickConjugation')?.addEventListener('click',()=>{modeSelect.value='conjugation';state.settings.mode='conjugation';save();updateLearn();updateVerbTenseControls()});
-byId('quickPreposition')?.addEventListener('click',()=>{modeSelect.value='preposition';state.settings.mode='preposition';save();updateLearn();updateVerbTenseControls()});
-byId('quickArticles')?.addEventListener('click',()=>{modeSelect.value='articles';state.settings.mode='articles';save();updateLearn();updateVerbTenseControls()});
-byId('quickGaptext')?.addEventListener('click',()=>{modeSelect.value='gaptext';state.settings.mode='gaptext';save();updateLearn();updateVerbTenseControls()});
+byId('quickFlashcards')?.addEventListener('click',()=>{modeSelect.value='flashcards';state.settings.mode='flashcards';currentId=null;save();updateLearn();updateVerbTenseControls()});
+byId('quickMC')?.addEventListener('click',()=>{modeSelect.value='mc';state.settings.mode='mc';currentId=null;save();updateLearn();updateVerbTenseControls()});
+byId('quickType')?.addEventListener('click',()=>{modeSelect.value='type';state.settings.mode='type';currentId=null;save();updateLearn();updateVerbTenseControls()});
+byId('quickConjugation')?.addEventListener('click',()=>{modeSelect.value='conjugation';state.settings.mode='conjugation';currentId=null;save();updateLearn();updateVerbTenseControls()});
+byId('quickPreposition')?.addEventListener('click',()=>{modeSelect.value='preposition';state.settings.mode='preposition';currentId=null;save();updateLearn();updateVerbTenseControls()});
+byId('quickArticles')?.addEventListener('click',()=>{modeSelect.value='articles';state.settings.mode='articles';currentId=null;save();updateLearn();updateVerbTenseControls()});
+byId('quickGaptext')?.addEventListener('click',()=>{modeSelect.value='gaptext';state.settings.mode='gaptext';currentId=null;save();updateLearn();updateVerbTenseControls()});
 
 function updateVerbTenseControls(){const isConjMode=modeSelect.value==='conjugation';verbTenseControls.style.display=isConjMode?'block':'none'}
 const tbody=byId('tableBody'),searchInput=byId('searchInput'),countTxt=byId('countTxt'),statusFilter=byId('statusFilter'),successFilter=byId('successFilter'),sortSelect=byId('sortBy');
@@ -165,7 +165,17 @@ byId('nextBtn')?.addEventListener('click',()=>grade(lastCorrect?'good':'again'))
 function cardById(id){return state.items.find(i=>i.id===id)}
 function dir(){return state.settings.direction}
 function mode(){return state.settings.mode}
-function pickDue(){let due=state.items.filter(i=>!i.suspended&&(i.dueAt||0)<=now());const cardType=state.settings.cardType||cardTypeSelect?.value||'all';const category=state.settings.category||categorySelect?.value||'all';if(cardType!=='all'){due=due.filter(i=>i.type===cardType)}if(category!=='all'){due=due.filter(i=>i.category===category)}if(!due.length)return null;due.sort((a,b)=>(a.dueAt||0)-(b.dueAt||0));return due[0]}
+function pickDue(){let due=state.items.filter(i=>!i.suspended&&(i.dueAt||0)<=now());const cardType=state.settings.cardType||cardTypeSelect?.value||'all';const category=state.settings.category||categorySelect?.value||'all';const currentMode=mode();
+// Modus-spezifische Filterung
+if(currentMode==='conjugation'){due=due.filter(i=>i.type==='verb')}
+else if(currentMode==='preposition'){due=due.filter(i=>i.type==='prep')}
+else if(currentMode==='articles'){due=due.filter(i=>i.type==='article')}
+else if(currentMode==='gaptext'){due=due.filter(i=>i.type==='prep')}
+else {
+// Für andere Modi (flashcards, mc, type) normale Filter anwenden
+if(cardType!=='all'){due=due.filter(i=>i.type===cardType)}
+}
+if(category!=='all'){due=due.filter(i=>i.category===category)}if(!due.length)return null;due.sort((a,b)=>(a.dueAt||0)-(b.dueAt||0));return due[0]}
 function updateLearn(){const card=pickDue();const m=mode();const isFC=(m==='flashcards'),isMC=(m==='mc'),isType=(m==='type'),isConj=(m==='conjugation'),isPrep=(m==='preposition'),isArticle=(m==='articles'),isGap=(m==='gaptext');
 // Alle Modi zurücksetzen - mit Null-Checks
 if(fcActions)fcActions.style.display=isFC?'flex':'none';
@@ -193,7 +203,7 @@ const due=state.items.filter(i=>!i.suspended&&(i.dueAt||0)<=now());
 if(dueCounter)dueCounter.textContent=due.length?`Fällig: ${due.length}`:'Nichts fällig';
 if(!card){
 if(learnWord)learnWord.textContent='🎉 Nichts fällig!';
-if(learnMeta)learnMeta.textContent=getModeText()+' – '+getDirText();
+if(learnMeta)learnMeta.innerHTML=getModeText()+' – '+getDirText();
 currentId=null;resetCurrentStates();
 if(mcBox)mcBox.innerHTML='';
 if(prepOptions)prepOptions.innerHTML='';
@@ -225,7 +235,10 @@ learnWord.textContent=card.extra.infinitive||card.it;learnMeta.textContent='Konj
 
 function setupPrepositionMode(card){const contexts=card.extra?.contexts||getPrepositionContexts()[card.it];if(!contexts||!contexts.length)return updateLearn();
 const context=contexts[Math.floor(Math.random()*contexts.length)];const allPreps=['a','di','da','in','con','per','su','tra','fra'];const correctPrep=card.it;const distractors=shuffle(allPreps.filter(p=>p!==correctPrep)).slice(0,3);const options=shuffle([correctPrep,...distractors]);
-currentPrepContext={context,correct:correctPrep};learnWord.textContent=context.replace('___','___');learnMeta.textContent='Präposition – Kontext';prepOptions.innerHTML='';prepFeedback.style.display='none';
+currentPrepContext={context,correct:correctPrep};
+const contextEl=byId('prepositionContext');
+if(contextEl)contextEl.textContent=context;
+learnMeta.innerHTML='Präposition – Kontext';prepOptions.innerHTML='';prepFeedback.style.display='none';
 options.forEach(prep=>{const btn=document.createElement('button');btn.className='btn ghost';btn.textContent=prep;btn.addEventListener('click',()=>checkPreposition(prep,correctPrep));prepOptions.appendChild(btn)})}
 
 function setupArticleMode(card){if(!card.extra?.article||!card.extra?.word)return updateLearn();
@@ -251,11 +264,6 @@ return{blank:'___',answer:card.it}}
 function getModeText(){const m=mode();return m==='flashcards'?'Karteikarten':m==='mc'?'Multiple Choice':m==='type'?'Tippen':m==='conjugation'?'Konjugation':m==='preposition'?'Präposition':m==='articles'?'Artikel':m==='gaptext'?'Lückentext':'Lernen'}
 
 function getDirText(){return dir()==='it-de'?'IT→DE':'DE→IT'}
-
-function setupPrepositionMode(card){const contexts=card.extra?.contexts||getPrepositionContexts()[card.it];if(!contexts||!contexts.length)return updateLearn();
-const context=contexts[Math.floor(Math.random()*contexts.length)];const allPreps=['a','di','da','in','con','per','su','tra','fra'];const correctPrep=card.it;const distractors=shuffle(allPreps.filter(p=>p!==correctPrep)).slice(0,3);const options=shuffle([correctPrep,...distractors]);
-currentPrepContext={context,correct:correctPrep};learnWord.textContent=context.replace('___','___');learnMeta.textContent='Präposition – Kontext';prepOptions.innerHTML='';prepFeedback.style.display='none';
-options.forEach(prep=>{const btn=document.createElement('button');btn.className='btn ghost';btn.textContent=prep;btn.addEventListener('click',()=>checkPreposition(prep,correctPrep));prepOptions.appendChild(btn)})}
 
 function checkPreposition(selected,correct){const buttons=prepOptions.querySelectorAll('button');buttons.forEach(btn=>{btn.disabled=true;if(btn.textContent===correct){btn.classList.add('correct')}else if(btn.textContent===selected&&selected!==correct){btn.classList.add('wrong')}});
 const ok=selected===correct;prepFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct;prepFeedback.className='type-feedback '+(ok?'ok':'bad');prepFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)}
