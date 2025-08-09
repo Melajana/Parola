@@ -2,3 +2,9 @@
     font-size: 13px;
     /* other styles remain unchanged */
 }
+
+/* Ensure all button elements in Settings section have 13px font size */
+#view-settings .btn,
+#view-settings .file-btn {
+    font-size: 13px !important;
+}
