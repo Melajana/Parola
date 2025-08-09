@@ -137,21 +137,21 @@ speechSynthesis.speak(utterance)}
 
 function autoSpeak(text,isItalian=true){if(state.settings.autoSpeak){setTimeout(()=>{if(isItalian){speakItalian(text)}else{speakGerman(text)}},500)}}
 byId('typeRevealBtn')?.addEventListener('click',()=>{if(!currentId)return;const c=cardById(currentId);const a=dir()==='it-de'?c.de:c.it;typeFeedback.textContent='Antwort: '+a;typeFeedback.className='type-feedback';typeFeedback.style.display='block'});
-byId('typeCheckBtn')?.addEventListener('click',()=>{if(!currentId)return;const c=cardById(currentId);const a=dir()==='it-de'?c.de:c.it;const ok=isClose(typeInput.value,a);typeFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+a;typeFeedback.className='type-feedback '+(ok?'ok':'bad');typeFeedback.style.display='block';grade(ok?'good':'again')});
+byId('typeCheckBtn')?.addEventListener('click',()=>{if(!currentId)return;const c=cardById(currentId);const a=dir()==='it-de'?c.de:c.it;const ok=isClose(typeInput.value,a);typeFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+a;typeFeedback.className='type-feedback '+(ok?'ok':'bad');typeFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)});
 typeInput?.addEventListener('keydown',e=>{if(e.key==='Enter'){byId('typeCheckBtn').click()}});
 
 // Verb-Konjugation Event Listeners
 byId('conjRevealBtn')?.addEventListener('click',()=>{if(!currentId||!currentConjugation)return;const c=cardById(currentId);const correct=c.extra?.conjugations?.[currentConjugation.tense]?.[currentConjugation.pronoun];conjFeedback.textContent='Antwort: '+correct;conjFeedback.className='type-feedback';conjFeedback.style.display='block'});
 
-byId('conjCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentConjugation)return;const c=cardById(currentId);const correct=c.extra?.conjugations?.[currentConjugation.tense]?.[currentConjugation.pronoun];const ok=isClose(conjugationInput.value,correct);conjFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct;conjFeedback.className='type-feedback '+(ok?'ok':'bad');conjFeedback.style.display='block';grade(ok?'good':'again')});
+byId('conjCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentConjugation)return;const c=cardById(currentId);const correct=c.extra?.conjugations?.[currentConjugation.tense]?.[currentConjugation.pronoun];const ok=isClose(conjugationInput.value,correct);conjFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct;conjFeedback.className='type-feedback '+(ok?'ok':'bad');conjFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)});
 
 // Artikel-Training Event Listeners
-byId('articleCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentArticle)return;const c=cardById(currentId);const correct=c.extra?.article;const ok=currentArticle.selected===correct;articleFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct+' '+c.extra.word;articleFeedback.className='type-feedback '+(ok?'ok':'bad');articleFeedback.style.display='block';grade(ok?'good':'again')});
+byId('articleCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentArticle)return;const c=cardById(currentId);const correct=c.extra?.article;const ok=currentArticle.selected===correct;articleFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct+' '+c.extra.word;articleFeedback.className='type-feedback '+(ok?'ok':'bad');articleFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)});
 
 // Lückentext Event Listeners  
 byId('gaptextRevealBtn')?.addEventListener('click',()=>{if(!currentId||!currentGaptext)return;gaptextFeedback.textContent='Antwort: '+currentGaptext.answer;gaptextFeedback.className='type-feedback';gaptextFeedback.style.display='block'});
 
-byId('gaptextCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentGaptext)return;const ok=isClose(gaptextInput.value,currentGaptext.answer);gaptextFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+currentGaptext.answer;gaptextFeedback.className='type-feedback '+(ok?'ok':'bad');gaptextFeedback.style.display='block';grade(ok?'good':'again')});
+byId('gaptextCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentGaptext)return;const ok=isClose(gaptextInput.value,currentGaptext.answer);gaptextFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+currentGaptext.answer;gaptextFeedback.className='type-feedback '+(ok?'ok':'bad');gaptextFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)});
 
 gaptextInput?.addEventListener('keydown',e=>{if(e.key==='Enter'){byId('gaptextCheckBtn').click()}});
 
