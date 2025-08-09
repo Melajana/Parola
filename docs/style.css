@@ -22,6 +22,10 @@ label{display:flex;flex-direction:column;gap:6px}.input,select,textarea{padding:
 .learn-controls{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}.chip{display:inline-block;padding:4px 12px;border-radius:9999px;background:var(--ghost);border:1px solid var(--border);font-family:Nunito,Inter;font-weight:800}
 .actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
 .actions.wrap{gap:12px}
+.actions .btn{font-size:13px}
+/* Button groups for settings page */
+.button-group{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.button-group .btn{font-size:13px;min-width:auto}
 .list-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.list-controls .input{min-width:200px}
 .table-wrap{border-radius:16px;overflow:hidden}
 table{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
