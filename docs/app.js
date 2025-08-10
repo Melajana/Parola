@@ -603,7 +603,6 @@ function checkConjugation() {
     
     setTimeout(() => gradeCard(isCorrect ? 'good' : 'again'), 1500);
 }
-}
 
 function setupPrepositionMode(card) {
     hideAllModeBoxes();
@@ -699,7 +698,6 @@ function checkGaptext() {
     }
     
     setTimeout(() => gradeCard(isCorrect ? 'good' : 'again'), 1500);
-}
 }
 
 function hideAllModeBoxes() {
@@ -883,4 +881,11 @@ window.toggleSuspend = toggleSuspend;
 window.deleteCard = deleteCard;
 window.addCard = addCard;
 
+// Test function to verify buttons work
+window.testButton = function() {
+    console.log('Button test successful!');
+    alert('Buttons are working!');
+};
+
 console.log('Streamlined Italian Learning App loaded! 🇮🇹');
+console.log('selectMode function available:', typeof window.selectMode);
