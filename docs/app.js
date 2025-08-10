@@ -2,7 +2,10 @@
 const LS_KEY='parola:srs11';
 const MIN=60*1000,DAY=24*60*60*1000;
 const INTERVALS=[10*MIN,1*DAY,3*DAY,7*DAY,16*DAY];
-const state=load()||seed();state.settings=Object.assign({newPerSession:10,maxReviews:100,direction:'it-de',mode:'flashcards',tolerance:20,sortBy:'default',autoSpeak:false,speechRate:0.8,autoFlip:false},state.settings||{});save();
+const state=load()||seed();state.settings=Object.assign({newPerSession:10,maxReviews:100,direction:'it-de',mode:'flashcards',tolerance:20,sortBy:'default',autoSpeak:false,speechRate:0.8,autoFlip:false},state.settings||{});
+// Auto-Speak explizit deaktivieren
+state.settings.autoSpeak = false;
+save();
 function load(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch{return null}}
 function save(){localStorage.setItem(LS_KEY,JSON.stringify(state))}
 function uid(){return Math.random().toString(36).slice(2)}
@@ -56,8 +59,8 @@ function showAchievementNotification(achievements){achievements.forEach(ach=>{co
 function successPct(it){const a=it.attempts||0,c=it.correct||0;return a?Math.round((c/a)*100):null}
 function levenshtein(a,b){const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>Array(n+1).fill(0));for(let i=0;i<=m;i++)dp[i][0]=i;for(let j=0;j<=n;j++)dp[0][j]=j;for(let i=1;i<=m;i++){for(let j=1;j<=n;j++){const cost=a[i-1]===b[j-1]?0:1;dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+cost)}}return dp[m][n]}
 function isClose(a,b){const A=norm(a),B=norm(b);if(!A||!B)return false;if(A===B)return true;const dist=levenshtein(A,B);const tol=Math.max(0,Math.round((state.settings.tolerance||20)/100*B.length));return dist<=tol}
-const tabsEl=byId('tabs'),views={learn:byId('view-learn'),list:byId('view-list'),add:byId('view-add'),settings:byId('view-settings')};
-tabsEl.addEventListener('click',e=>{const btn=e.target.closest('button[data-tab]');if(!btn)return;tabsEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));const tab=btn.dataset.tab;Object.entries(views).forEach(([id,el])=>el.hidden=id!==tab);if(tab==='learn')updateLearn();if(tab==='list')renderList();if(tab==='settings')renderStats()});
+const tabsEl=byId('tabs'),views={learn:byId('view-learn'),add:byId('view-add'),settings:byId('view-settings')};
+tabsEl.addEventListener('click',e=>{const btn=e.target.closest('button[data-tab]');if(!btn)return;tabsEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));const tab=btn.dataset.tab;Object.entries(views).forEach(([id,el])=>el.hidden=id!==tab);if(tab==='learn')updateLearn();if(tab==='settings')renderStats()});
 const learnWord=byId('learnWord'),learnMeta=byId('learnMeta'),answerBox=byId('answerBox'),dueCounter=byId('dueCounter'),fcActions=byId('fcActions'),mcActions=byId('mcActions'),mcBox=byId('mcBox'),typeBox=byId('typeBox'),typeInput=byId('typeInput'),typeFeedback=byId('typeFeedback'),modeSelect=byId('modeSelect'),dirSelect=byId('dirSelect'),cardTypeSelect=byId('cardTypeSelect'),categorySelect=byId('categorySelect'),verbTenseSelect=byId('verbTenseSelect'),verbTenseControls=byId('verbTenseControls'),conjugationBox=byId('conjugationBox'),conjugationInput=byId('conjugationInput'),conjFeedback=byId('conjFeedback'),prepositionBox=byId('prepositionBox'),prepOptions=byId('prepOptions'),prepFeedback=byId('prepFeedback'),articleBox=byId('articleBox'),articleOptions=byId('articleOptions'),articleFeedback=byId('articleFeedback'),gaptextBox=byId('gaptextBox'),gaptextInput=byId('gaptextInput'),gaptextFeedback=byId('gaptextFeedback');
 modeSelect.value=state.settings.mode;dirSelect.value=state.settings.direction;
 modeSelect.addEventListener('change',()=>{state.settings.mode=modeSelect.value;currentId=null;save();updateLearn();updateVerbTenseControls()});
@@ -228,6 +231,13 @@ if(conjugationBox)conjugationBox.style.display=isConj?'block':'none';
 if(prepositionBox)prepositionBox.style.display=isPrep?'block':'none';
 if(articleBox)articleBox.style.display=isArticle?'block':'none';
 if(gaptextBox)gaptextBox.style.display=isGap?'block':'none';
+
+// Hauptwort und Metadaten nur anzeigen wenn NICHT Flashcard-Modus
+if(learnWord)learnWord.style.display=isFC?'none':'block';
+if(learnMeta)learnMeta.style.display=isFC?'none':'block';
+const speakBtn = byId('speakBtn');
+if(speakBtn)speakBtn.style.display=isFC?'none':'inline-flex';
+
 // Feedback zurücksetzen - mit Null-Checks
 if(answerBox){answerBox.style.display='none';answerBox.textContent=''}
 if(typeFeedback)typeFeedback.style.display='none';
@@ -259,10 +269,13 @@ if(isArticle&&card.type==='article'){setupArticleMode(card);return}
 if(isGap){setupGaptextMode(card);return}
 // Standard Modi (Vokabeln, Flashcards, MC, Type)
 const q=dir()==='it-de'?card.it:card.de;const a=dir()==='it-de'?card.de:card.it;
-if(learnWord)learnWord.textContent=q;
-if(learnMeta)learnMeta.innerHTML=getModeText()+' – '+getDirText()+getCategoryBadge(card);
-// Auto-Ausspreche für italienische Wörter
-if(dir()==='it-de'&&state.settings.autoSpeak){autoSpeak(q,true)}
+// Für nicht-Flashcard Modi: Hauptwort und Metadaten anzeigen
+if(!isFC) {
+    if(learnWord)learnWord.textContent=q;
+    if(learnMeta)learnMeta.innerHTML=getModeText()+' – '+getDirText()+getCategoryBadge(card);
+}
+// Auto-Ausspreche für italienische Wörter (deaktiviert)
+// if(dir()==='it-de'&&state.settings.autoSpeak){autoSpeak(q,true)}
 if(isMC){setupMCMode(card,q,a)}
 if(isFC){setupFlashcardMode(card,q,a)}}
 
