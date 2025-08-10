@@ -31,6 +31,7 @@
     <div class="learn-controls">
       <span class="chip">Modus</span>
       <select id="modeSelect" class="input input-compact">
+        <option value="flashcards">Karteikarten</option>
         <option value="mc">Multiple Choice</option>
         <option value="type">Tippen</option>
         <option value="conjugation">Verb-Konjugation</option>
@@ -75,6 +76,7 @@
     
     <!-- Schnellstart-Buttons -->
     <div class="quick-start-buttons" style="margin: 16px 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+      <button class="btn ghost btn-sm" id="quickFlashcards" title="Direkt zu Karteikarten">📚 Karteikarten</button>
       <button class="btn ghost btn-sm" id="quickMC" title="Direkt zu Multiple Choice">🎯 Multiple Choice</button>
       <button class="btn ghost btn-sm" id="quickType" title="Direkt zu Tippen">⌨️ Tippen</button>
       <button class="btn ghost btn-sm" id="quickConjugation" title="Direkt zu Verb-Konjugation">⚡ Verben</button>
@@ -138,8 +140,38 @@
     </div>
 
     <!-- Flashcard / MC -->
+    <div id="flashcardContainer" class="flashcard-container" style="display:none">
+      <div id="flashcard" class="flashcard">
+        <div id="flashcard-front" class="flashcard-front">
+          <div>
+            <div id="flashcardWord" class="flashcard-word">ciao</div>
+            <div class="flashcard-hint">Klicken zum Umdrehen</div>
+          </div>
+        </div>
+        <div id="flashcard-back" class="flashcard-back">
+          <div id="flashcardTranslation" class="flashcard-translation">hallo</div>
+        </div>
+      </div>
+      <div id="autoFlipTimer" class="auto-flip-timer" style="display:none">
+        <div id="autoFlipProgress" class="auto-flip-progress"></div>
+      </div>
+      <div class="flashcard-actions" id="flashcardActions">
+        <button class="btn ghost clickfx" id="hardBtn">😰 Schwer</button>
+        <button class="btn ghost clickfx" id="againBtn">🔄 Noch mal</button>
+        <button class="btn primary clickfx" id="goodBtn">✅ Gut</button>
+        <button class="btn primary clickfx" id="easyBtn">😎 Einfach</button>
+      </div>
+    </div>
+
+    <!-- Old Flashcard System (fallback) -->
+    <div id="answerBox" class="muted" style="margin-top:10px; font-size:20px; display:none"></div>
     <div id="mcBox" class="mc-box" style="display:none"></div>
 
+    <div class="actions" id="fcActions" style="display:none">
+      <button class="btn ghost clickfx" id="revealBtn">Auflösung zeigen</button>
+      <button class="btn ghost clickfx" id="oldAgainBtn">Wiederholen</button>
+      <button class="btn primary clickfx" id="oldGoodBtn">Gewusst</button>
+    </div>
     <div class="actions" id="mcActions" style="display:none">
       <button class="btn ghost clickfx" id="skipBtn">Überspringen</button>
       <button class="btn primary clickfx" id="nextBtn" disabled>Weiter</button>
@@ -221,7 +253,10 @@
         <input id="autoSpeakCheck" type="checkbox" style="margin:0">
         Auto-Aussprache aktivieren
       </label>
-      <div></div>
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="autoFlipCheck" type="checkbox" style="margin:0">
+        Karteikarten auto-umdrehen (3s)
+      </label>
     </div>
     <div class="actions wrap">
       <button id="exportBtn" class="btn ghost clickfx">Export als JSON</button>

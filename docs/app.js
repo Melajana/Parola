@@ -95,21 +95,32 @@ byId('quickPreposition')?.addEventListener('click',()=>{modeSelect.value='prepos
 byId('quickArticles')?.addEventListener('click',()=>{modeSelect.value='articles';state.settings.mode='articles';currentId=null;save();updateLearn();updateVerbTenseControls()});
 byId('quickGaptext')?.addEventListener('click',()=>{modeSelect.value='gaptext';state.settings.mode='gaptext';currentId=null;save();updateLearn();updateVerbTenseControls()});
 
-// Debug: Schnellstart-Buttons prüfen und aktivieren
+// Debug: Schnellstart-Buttons prüfen und aktivieren + Karten-Status prüfen
 ['quickFlashcards','quickMC','quickType','quickConjugation','quickPreposition','quickArticles','quickGaptext'].forEach(id=>{
-    const btn = byId(id);
-    if(btn) {
-        btn.disabled = false;
-        btn.style.opacity = '';
-        btn.addEventListener('click',()=>{
-            console.log('Button', id, 'wurde geklickt');
-        });
-    } else {
-        console.warn('Button mit ID', id, 'nicht gefunden!');
-    }
+  const btn = byId(id);
+  if(btn) {
+    btn.disabled = false;
+    btn.style.opacity = '';
+    btn.addEventListener('click',()=>{
+      console.log('Button', id, 'wurde geklickt');
+      console.log('Verfügbare Karten:', state.items.length);
+      console.log('Fällige Karten:', state.items.filter(i=>!i.suspended&&(i.dueAt||0)<=now()).length);
+      console.log('Aktuelle Zeit:', now(), 'Erste Karte dueAt:', state.items[0]?.dueAt);
+    });
+  } else {
+    console.warn('Button mit ID', id, 'nicht gefunden!');
+  }
 });
 
-function updateVerbTenseControls(){const isConjMode=modeSelect.value==='conjugation';verbTenseControls.style.display=isConjMode?'block':'none'}
+// Debug: Alle Karten als sofort fällig setzen (für Tests)
+console.log('Debug: Setze alle Karten auf fällig...');
+state.items.forEach(card => {
+  if(card.dueAt > now()) {
+    card.dueAt = now() - 1000; // 1 Sekunde in der Vergangenheit
+  }
+});
+save();
+console.log('Fällige Karten nach Update:', state.items.filter(i=>!i.suspended&&(i.dueAt||0)<=now()).length);function updateVerbTenseControls(){const isConjMode=modeSelect.value==='conjugation';verbTenseControls.style.display=isConjMode?'block':'none'}
 const tbody=byId('tableBody'),searchInput=byId('searchInput'),countTxt=byId('countTxt'),statusFilter=byId('statusFilter'),successFilter=byId('successFilter'),sortSelect=byId('sortBy');
 searchInput?.addEventListener('input',renderList);statusFilter?.addEventListener('change',renderList);successFilter?.addEventListener('change',renderList);
 if(sortSelect){sortSelect.value=state.settings.sortBy||'default';sortSelect.addEventListener('change',()=>{state.settings.sortBy=sortSelect.value;save();renderList()})}
@@ -205,7 +216,11 @@ if(cardType!=='all'){due=due.filter(i=>i.type===cardType)}
 if(category!=='all'){due=due.filter(i=>i.category===category)}if(!due.length)return null;due.sort((a,b)=>(a.dueAt||0)-(b.dueAt||0));return due[0]}
 function updateLearn(){const card=pickDue();const m=mode();const isFC=(m==='flashcards'),isMC=(m==='mc'),isType=(m==='type'),isConj=(m==='conjugation'),isPrep=(m==='preposition'),isArticle=(m==='articles'),isGap=(m==='gaptext');
 // Alle Modi zurücksetzen - mit Null-Checks
-if(fcActions)fcActions.style.display=isFC?'flex':'none';
+const flashcardContainer = byId('flashcardContainer');
+const flashcardActions = byId('flashcardActions');
+if(fcActions)fcActions.style.display='none'; // alte Flashcard-Actions ausblenden
+if(flashcardContainer)flashcardContainer.style.display=isFC?'block':'none';
+if(flashcardActions)flashcardActions.style.display=isFC?'flex':'none';
 if(mcActions)mcActions.style.display=isMC?'flex':'none';
 if(mcBox)mcBox.style.display=isMC?'grid':'none';
 if(typeBox)typeBox.style.display=isType?'block':'none';
@@ -265,10 +280,13 @@ function setupFlashcardMode(card,q,a){
     const flashcardBack = byId('flashcard-back');
     
     if (flashcard) flashcard.classList.remove('flipped');
-    if (flashcardFront) flashcardFront.innerHTML = `<div class="flashcard-word">${q}</div>`;
-    if (flashcardBack) flashcardBack.innerHTML = `<div class="flashcard-word">${a}</div>`;
+    if (flashcardFront) flashcardFront.innerHTML = `<div><div class="flashcard-word">${q}</div><div class="flashcard-hint">Klicken zum Umdrehen</div></div>`;
+    if (flashcardBack) flashcardBack.innerHTML = `<div class="flashcard-translation">${a}</div>`;
     
-    startAutoFlip();
+    // Flashcard Click Handler
+    if (flashcard) {
+        flashcard.onclick = () => flipCard();
+    }
 }
 
 function setupConjugationMode(card){const tense=verbTenseSelect?.value||'presente';if(!card.extra?.conjugations?.[tense])return updateLearn();
@@ -377,16 +395,14 @@ function startAutoFlip() {
     }
 }
 
-function gradeCard(grade) {
+function gradeCard(result) {
     clearTimeout(autoFlipTimeout);
-    grade_(grade);
+    grade(result);
     setTimeout(() => {
         const flashcard = byId('flashcard');
         if (flashcard) {
             flashcard.classList.remove('flipped');
         }
-        currentId = null;
-        updateLearn();
     }, 300);
 }
 
