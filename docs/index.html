@@ -23,71 +23,54 @@
   <nav class="tabs" id="tabs">
     <button class="btn active" data-tab="learn">Lernen</button>
     <button class="btn" data-tab="add">Hinzufügen</button>
+    <button class="btn" data-tab="manage">Vokabeln verwalten</button>
     <button class="btn" data-tab="settings">Einstellungen</button>
   </nav>
 
   <!-- Learn -->
   <section class="card view center" id="view-learn">
+    <!-- Vereinfachte Haupt-Controls: Nur Richtung ist wirklich wichtig für den User -->
     <div class="learn-controls">
-      <span class="chip">Modus</span>
-      <select id="modeSelect" class="input input-compact">
-        <option value="flashcards">Karteikarten</option>
-        <option value="mc">Multiple Choice</option>
-        <option value="type">Tippen</option>
-        <option value="conjugation">Verb-Konjugation</option>
-        <option value="preposition">Präposition im Kontext</option>
-        <option value="articles">Artikel-Training</option>
-        <option value="gaptext">Lückentext</option>
-      </select>
-      <span class="chip" style="margin-left:12px">Richtung</span>
+      <span class="chip">Lernrichtung</span>
       <select id="dirSelect" class="input input-compact">
         <option value="it-de">Italienisch → Deutsch</option>
         <option value="de-it">Deutsch → Italienisch</option>
       </select>
     </div>
-    <div class="learn-controls">
-      <span class="chip">Kartentyp</span>
-      <select id="cardTypeSelect" class="input input-compact">
-        <option value="all">Alle</option>
-        <option value="vocab">Vokabeln</option>
-        <option value="prep">Präpositionen</option>
-        <option value="verb">Verben</option>
-        <option value="article">Artikel</option>
-      </select>
-      <span class="chip" style="margin-left:12px">Kategorie</span>
-      <select id="categorySelect" class="input input-compact">
-        <option value="all">Alle</option>
-        <option value="greetings">Begrüßungen</option>
-        <option value="food">Essen</option>
-        <option value="family">Familie</option>
-        <option value="grammar">Grammatik</option>
-        <option value="verbs">Verben</option>
-        <option value="articles">Artikel</option>
-      </select>
+    <!-- Lernmodi - Die einzige Auswahl die der User braucht -->
+    <div class="mode-selector" style="margin: 20px 0;">
+      <div style="margin-bottom: 12px; font-weight: 600; color: var(--text);">Wähle deinen Lernmodus:</div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+        <button class="btn ghost clickfx mode-btn" id="quickFlashcards" data-mode="flashcards">
+          📚 Karteikarten
+        </button>
+        <button class="btn ghost clickfx mode-btn" id="quickMC" data-mode="mc">
+          🎯 Multiple Choice
+        </button>
+        <button class="btn ghost clickfx mode-btn" id="quickType" data-mode="type">
+          ⌨️ Tippen
+        </button>
+        <button class="btn ghost clickfx mode-btn" id="quickConjugation" data-mode="conjugation">
+          ⚡ Verben
+        </button>
+        <button class="btn ghost clickfx mode-btn" id="quickPreposition" data-mode="preposition">
+          🔗 Präpositionen
+        </button>
+        <button class="btn ghost clickfx mode-btn" id="quickArticles" data-mode="articles">
+          🎯 Artikel
+        </button>
+        <button class="btn ghost clickfx mode-btn" id="quickGaptext" data-mode="gaptext">
+          📝 Lückentext
+        </button>
+      </div>
     </div>
-    <div class="learn-controls" id="verbTenseControls" style="display:none">
-      <span class="chip">Verb-Zeit</span>
-      <select id="verbTenseSelect" class="input input-compact">
-        <option value="presente">Presente</option>
-        <option value="passato_prossimo">Passato Prossimo</option>
-        <option value="imperfetto">Imperfetto</option>
-      </select>
+
+    <!-- Aktueller Lerninhalt -->
+    <div class="current-learning" style="margin-top: 24px;">
+      <div class="muted" id="learnMeta" style="margin-bottom:8px">Wähle einen Lernmodus</div>
+      <div id="learnWord" class="word">—</div>
+      <button class="speaker-icon" id="speakBtn" title="Vorlesen"><img src="assets/Hear-Icon.svg" alt="Hören"></button>
     </div>
-    
-    <!-- Schnellstart-Buttons -->
-    <div class="quick-start-buttons" style="margin: 16px 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
-      <button class="btn ghost btn-sm" id="quickFlashcards" title="Direkt zu Karteikarten">📚 Karteikarten</button>
-      <button class="btn ghost btn-sm" id="quickMC" title="Direkt zu Multiple Choice">🎯 Multiple Choice</button>
-      <button class="btn ghost btn-sm" id="quickType" title="Direkt zu Tippen">⌨️ Tippen</button>
-      <button class="btn ghost btn-sm" id="quickConjugation" title="Direkt zu Verb-Konjugation">⚡ Verben</button>
-      <button class="btn ghost btn-sm" id="quickPreposition" title="Direkt zu Präpositionen">🔗 Präpositionen</button>
-      <button class="btn ghost btn-sm" id="quickArticles" title="Direkt zu Artikel-Training">🎪 Artikel</button>
-      <button class="btn ghost btn-sm" id="quickGaptext" title="Direkt zu Lückentext">📝 Lückentext</button>
-    </div>
-    
-    <div class="muted" id="learnMeta" style="margin-bottom:8px">—</div>
-    <div id="learnWord" class="word">—</div>
-    <button class="speaker-icon" id="speakBtn" title="Vorlesen"><img src="assets/Hear-Icon.svg" alt="Hören"></button>
 
     <!-- Tippen -->
     <div id="typeBox" class="type-box" style="display:none">
@@ -145,7 +128,10 @@
         <div id="flashcard-front" class="flashcard-front">
           <div>
             <div id="flashcardWord" class="flashcard-word">ciao</div>
-            <div class="flashcard-hint">Klicken zum Umdrehen</div>
+            <div class="audio-controls" style="margin: 10px 0;">
+              <button class="btn audio-btn" id="speakBtn" title="Aussprechen">🔊</button>
+            </div>
+            <div class="flashcard-hint">Vollautomatisch in <span id="autoTimer">2.5</span>s</div>
           </div>
         </div>
         <div id="flashcard-back" class="flashcard-back">
@@ -222,48 +208,9 @@
     </div>
   </section>
 
-  <!-- Settings -->
-  <section class="card view" id="view-settings" hidden>
-    <h3>Einstellungen</h3>
-    <div class="grid grid-2">
-      <label>Neue Karten pro Sitzung <input id="newPerSession" type="number" class="input" value="10"></label>
-      <label>Max. Wiederholungen pro Sitzung <input id="maxReviews" type="number" class="input" value="100"></label>
-    </div>
-    <div class="grid grid-2" style="margin-top:12px">
-      <label>Fehler‑Toleranz (Tippen)
-        <select id="toleranceSelect" class="input">
-          <option value="0">Streng (0 %)</option>
-          <option value="10">Mittel (10 %)</option>
-          <option value="20" selected>Locker (20 %)</option>
-        </select>
-      </label>
-      <label>Sprechgeschwindigkeit
-        <select id="speechRateSelect" class="input">
-          <option value="0.6">Langsam</option>
-          <option value="0.8" selected>Normal</option>
-          <option value="1.0">Schnell</option>
-        </select>
-      </label>
-    </div>
-    <div class="grid grid-2" style="margin-top:12px">
-      <label style="display:flex;align-items:center;gap:8px">
-        <input id="autoSpeakCheck" type="checkbox" style="margin:0">
-        Auto-Aussprache aktivieren
-      </label>
-      <label style="display:flex;align-items:center;gap:8px">
-        <input id="autoFlipCheck" type="checkbox" style="margin:0">
-        Karteikarten auto-umdrehen (3s)
-      </label>
-    </div>
-    <div class="actions wrap">
-      <button id="exportBtn" class="btn ghost clickfx">Export als JSON</button>
-      <label class="file-btn btn ghost clickfx">JSON importieren <input id="fileJson" type="file" accept="application/json" hidden></label>
-      <label class="file-btn btn ghost clickfx">CSV importieren <input id="fileCsv" type="file" accept=".csv,text/csv" hidden></label>
-      <button id="csvTplBtn" class="btn ghost clickfx">CSV‑Vorlage herunterladen</button>
-      <button id="clearBtn" class="btn ghost clickfx">Alles löschen</button>
-    </div>
-
-    <h3 style="margin-top:24px;">Vokabeln verwalten</h3>
+  <!-- Manage Vocabulary -->
+  <section class="card view" id="view-manage" hidden>
+    <h3>Vokabeln verwalten</h3>
     <div class="list-controls">
       <input id="searchInput" class="input" placeholder="Suchen…"/>
       <select id="statusFilter" class="input input-compact">
@@ -293,6 +240,59 @@
         <thead><tr><th>Italienisch</th><th>Deutsch</th><th>Fällig</th><th>Streak</th><th>Erfolg</th><th>Aktionen</th></tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
+    </div>
+    
+    <div class="actions wrap" style="margin-top:24px;">
+      <button id="exportBtn" class="btn ghost clickfx">Export als JSON</button>
+      <label class="file-btn btn ghost clickfx">JSON importieren <input id="fileJson" type="file" accept="application/json" hidden></label>
+      <label class="file-btn btn ghost clickfx">CSV importieren <input id="fileCsv" type="file" accept=".csv,text/csv" hidden></label>
+      <button id="csvTplBtn" class="btn ghost clickfx">CSV‑Vorlage herunterladen</button>
+      <button id="clearBtn" class="btn ghost clickfx">Alles löschen</button>
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section class="card view" id="view-settings" hidden>
+    <h3>Einstellungen</h3>
+    <div class="grid grid-2">
+      <label>Neue Karten pro Sitzung <input id="newPerSession" type="number" class="input" value="10"></label>
+      <label>Max. Wiederholungen pro Sitzung <input id="maxReviews" type="number" class="input" value="100"></label>
+    </div>
+    <div class="grid grid-2" style="margin-top:12px">
+      <label>Fehler‑Toleranz (Tippen)
+        <select id="toleranceSelect" class="input">
+          <option value="0">Streng (0 %)</option>
+          <option value="10">Mittel (10 %)</option>
+          <option value="20" selected>Locker (20 %)</option>
+        </select>
+      </label>
+      <label>Sprechgeschwindigkeit
+        <select id="speechRateSelect" class="input">
+          <option value="0.6">Langsam</option>
+          <option value="0.8" selected>Normal</option>
+          <option value="1.0">Schnell</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid grid-2" style="margin-top:12px">
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="autoSpeakCheck" type="checkbox" style="margin:0">
+        Auto-Aussprache bei neuen Karten
+      </label>
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="speakOnFlipCheck" type="checkbox" style="margin:0" checked>
+        Audio beim Karten umdrehen
+      </label>
+    </div>
+    <div class="grid grid-2" style="margin-top:12px">
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="autoFlipCheck" type="checkbox" style="margin:0">
+        Karteikarten auto-umdrehen (2.5s)
+      </label>
+      <label style="display:flex;align-items:center;gap:8px">
+        <input id="repeatAudioCheck" type="checkbox" style="margin:0">
+        Schwierige Wörter wiederholen
+      </label>
     </div>
 
     <h3 style="margin-top:24px;">Statistik & Ziele</h3>
