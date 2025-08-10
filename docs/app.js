@@ -421,9 +421,28 @@ function updateLearn(){
         return;
     }
     
-    const due=activeItems.filter(i=>(i.dueAt||0)<=now());
+    // Filter by current mode
+    const m = mode();
+    let filteredItems = activeItems;
+    
+    if (m === 'conjugation') {
+        filteredItems = activeItems.filter(i => i.type === 'verb');
+    } else if (m === 'preposition') {
+        filteredItems = activeItems.filter(i => i.type === 'prep');
+    } else if (m === 'articles') {
+        filteredItems = activeItems.filter(i => i.type === 'article');
+    }
+    // flashcards, mc, type, gaptext accept all types
+    
+    if(!filteredItems.length){
+        learnWord.textContent=`Keine ${m === 'conjugation' ? 'Verben' : m === 'preposition' ? 'Präpositionen' : m === 'articles' ? 'Artikel' : 'Karten'} verfügbar`;
+        learnMeta.textContent='Wähle einen anderen Modus oder füge Inhalte hinzu';
+        return;
+    }
+    
+    const due=filteredItems.filter(i=>(i.dueAt||0)<=now());
     if(!due.length){
-        const nextDue=activeItems.reduce((min,i)=>!min||(i.dueAt||0)<(min.dueAt||0)?i:min,null);
+        const nextDue=filteredItems.reduce((min,i)=>!min||(i.dueAt||0)<(min.dueAt||0)?i:min,null);
         if(nextDue?.dueAt){
             const waitTime=Math.ceil(((nextDue.dueAt||0)-now())/(1000*60));
             learnWord.textContent='Gut gemacht! 🎉';
@@ -444,20 +463,18 @@ function updateLearn(){
     if(!card) return;
     
     // Mode-specific display
-    const m = mode();
-    if (m === 'flashcards') {
+    const currentMode = mode();
+    if (currentMode === 'flashcards') {
         setupFlashcardMode(card);
-    } else if (m === 'mc') {
-        setupMCMode(card);
-    } else if (m === 'type') {
+    } else if (currentMode === 'type') {
         setupTypeMode(card);
-    } else if (m === 'conjugation' && card.type === 'verb') {
+    } else if (currentMode === 'conjugation' && card.type === 'verb') {
         setupConjugationMode(card);
-    } else if (m === 'preposition' && card.type === 'prep') {
+    } else if (currentMode === 'preposition' && card.type === 'prep') {
         setupPrepositionMode(card);
-    } else if (m === 'articles' && card.type === 'article') {
+    } else if (currentMode === 'articles' && card.type === 'article') {
         setupArticleMode(card);
-    } else if (m === 'gaptext') {
+    } else if (currentMode === 'gaptext') {
         setupGaptextMode(card);
     } else {
         // Fallback to flashcards
@@ -471,8 +488,44 @@ function setupFlashcardMode(card) {
     const q = dir() === 'it-de' ? card.it : card.de;
     const a = dir() === 'it-de' ? card.de : card.it;
     
-    learnWord.textContent = q;
-    learnMeta.textContent = `${card.type === 'verb' ? '⚡' : card.type === 'prep' ? '🔗' : card.type === 'article' ? '🎯' : '📚'} ${getModeText()} - ${getDirText()}`;
+    // Show flashcard container
+    const flashcardContainer = document.getElementById('flashcardContainer');
+    flashcardContainer.style.display = 'block';
+    
+    // Set up flashcard content
+    const flashcardWord = document.getElementById('flashcardWord');
+    const flashcardTranslation = document.getElementById('flashcardTranslation');
+    const flashcard = document.getElementById('flashcard');
+    
+    flashcardWord.textContent = q;
+    flashcardTranslation.textContent = a;
+    
+    // Reset flashcard to front
+    flashcard.classList.remove('flipped');
+    
+    learnMeta.textContent = `${card.type === 'verb' ? '⚡' : card.type === 'prep' ? '🔗' : card.type === 'article' ? '🎯' : '📚'} Karteikarten - ${getDirText()}`;
+    
+    // Set up audio button in flashcard (find the audio button within flashcard container)
+    const audioBtn = flashcardContainer.querySelector('.audio-btn');
+    if (audioBtn) {
+        audioBtn.onclick = async () => {
+            try {
+                const isItalian = dir() === 'it-de';
+                const textToSpeak = flashcard.classList.contains('flipped') ? a : q;
+                if (isItalian && !flashcard.classList.contains('flipped')) {
+                    await audioManager.speakItalian(textToSpeak);
+                } else if (!isItalian && !flashcard.classList.contains('flipped')) {
+                    await audioManager.speakGerman(textToSpeak);
+                } else if (isItalian && flashcard.classList.contains('flipped')) {
+                    await audioManager.speakGerman(textToSpeak);
+                } else {
+                    await audioManager.speakItalian(textToSpeak);
+                }
+            } catch (error) {
+                console.log('Audio playback failed:', error);
+            }
+        };
+    }
     
     // Auto-speak if enabled
     if (state.settings.autoSpeak) {
@@ -490,47 +543,30 @@ function setupFlashcardMode(card) {
         }, 300);
     }
     
-    // Simple click to reveal answer after short delay
+    // Auto-flip after 3 seconds, then auto-advance
+    let autoFlipped = false;
     setTimeout(() => {
-        const clickHandler = () => {
-            learnWord.textContent = a;
-            learnMeta.textContent = `Antwort: ${q} = ${a}`;
-            
-            // Auto-advance after showing answer
-            setTimeout(() => {
-                const grade = Math.random() > 0.3 ? 'good' : 'again'; // Simple auto-grading
-                gradeCard(grade);
-            }, 2000);
-            
-            // Remove click handler
-            learnWord.removeEventListener('click', clickHandler);
-        };
+        flashcard.classList.add('flipped');
+        autoFlipped = true;
         
-        learnWord.addEventListener('click', clickHandler);
-        learnWord.style.cursor = 'pointer';
-        learnWord.title = 'Klicken für Antwort';
-    }, 100);
-}
-
-function setupMCMode(card) {
-    hideAllModeBoxes();
-    const q = dir() === 'it-de' ? card.it : card.de;
-    const correct = dir() === 'it-de' ? card.de : card.it;
+        // Auto-advance after showing answer
+        setTimeout(() => {
+            const grade = Math.random() > 0.3 ? 'good' : 'again'; // Simple auto-grading
+            gradeCard(grade);
+        }, 2500);
+    }, 3000);
     
-    // Generate distractors
-    const allCards = state.items.filter(c => c.id !== card.id);
-    const distractors = shuffle(allCards).slice(0, 3).map(c => dir() === 'it-de' ? c.de : c.it);
-    const options = shuffle([correct, ...distractors]);
+    // Allow manual flip on click
+    const clickHandler = () => {
+        if (!autoFlipped) {
+            flashcard.classList.add('flipped');
+            autoFlipped = true;
+        }
+    };
     
-    learnWord.textContent = q;
-    learnMeta.textContent = '🎯 Multiple Choice - Wähle die richtige Antwort';
-    
-    // Create option buttons (simplified)
-    const optionsHtml = options.map((opt, idx) => 
-        `<button class="btn ghost" onclick="checkMC('${opt}', '${correct}')" style="margin: 4px; display: block;">${opt}</button>`
-    ).join('');
-    
-    learnWord.innerHTML = `${q}<div style="margin-top: 16px;">${optionsHtml}</div>`;
+    flashcard.removeEventListener('click', clickHandler); // Remove old handler
+    flashcard.addEventListener('click', clickHandler);
+    flashcard.style.cursor = 'pointer';
 }
 
 function setupTypeMode(card) {
@@ -648,23 +684,36 @@ function setupGaptextMode(card) {
     learnWord.textContent = '';
     learnMeta.textContent = '📝 Lückentext - Ergänze den Satz';
     
-    // Simple gaptext based on card type
+    // Einfacherer Lückentext - basierend auf Lernrichtung
     let sentence = '';
     let answer = '';
     
-    if (card.type === 'verb' && card.extra?.conjugations?.presente) {
-        sentence = `Io _____ ${card.extra.infinitive}`;
-        answer = card.extra.conjugations.presente.io;
-    } else if (card.type === 'prep') {
-        const contexts = card.extra?.contexts || [];
-        if (contexts.length > 0) {
-            sentence = contexts[0].replace('___', '_____');
-            answer = card.it;
-        }
-    } else {
-        // Fallback
+    if (dir() === 'it-de') {
+        // Italienisch → Deutsch: Italienischer Satz mit deutscher Lücke
         sentence = `"${card.it}" bedeutet auf Deutsch: _____`;
         answer = card.de;
+    } else {
+        // Deutsch → Italienisch: Deutscher Satz mit italienischer Lücke
+        sentence = `"${card.de}" heißt auf Italienisch: _____`;
+        answer = card.it;
+    }
+    
+    // Für spezielle Kartentypen anpassen
+    if (card.type === 'verb' && card.extra?.conjugations?.presente) {
+        if (dir() === 'it-de') {
+            sentence = `Konjugiere "io ${card.extra.infinitive}": _____`;
+            answer = card.extra.conjugations.presente.io;
+        } else {
+            sentence = `Was ist der Infinitiv von "io ${card.extra.conjugations.presente.io}": _____`;
+            answer = card.extra.infinitive;
+        }
+    } else if (card.type === 'prep' && card.extra?.contexts) {
+        const context = card.extra.contexts[0];
+        sentence = context.replace('___', '_____');
+        answer = card.it;
+    } else if (card.type === 'article' && card.extra?.word) {
+        sentence = `Der richtige Artikel für "${card.extra.word}" ist: _____`;
+        answer = card.extra.article;
     }
     
     currentGaptext = { sentence, answer };
@@ -701,7 +750,7 @@ function checkGaptext() {
 }
 
 function hideAllModeBoxes() {
-    const boxes = ['typeBox', 'conjugationBox', 'prepositionBox', 'articleBox', 'gaptextBox'];
+    const boxes = ['typeBox', 'conjugationBox', 'prepositionBox', 'articleBox', 'gaptextBox', 'flashcardContainer'];
     boxes.forEach(boxId => {
         const box = byId(boxId);
         if (box) box.style.display = 'none';
@@ -716,20 +765,6 @@ function hideAllModeBoxes() {
 }
 
 // Answer checking functions
-function checkMC(selected, correct) {
-    const isCorrect = selected === correct;
-    lastCorrect = isCorrect;
-    
-    learnWord.innerHTML = `
-        <div>${dir() === 'it-de' ? cardById(currentId).it : cardById(currentId).de}</div>
-        <div style="margin-top: 12px; font-size: 18px; color: ${isCorrect ? 'var(--ok)' : 'var(--bad)'};">
-            ${isCorrect ? '✓ Richtig!' : '✗ Falsch - Richtig: ' + correct}
-        </div>
-    `;
-    
-    setTimeout(() => gradeCard(isCorrect ? 'good' : 'again'), 1500);
-}
-
 function checkType(input, correct) {
     const isCorrect = isClose(input, correct);
     lastCorrect = isCorrect;
@@ -778,7 +813,6 @@ function getModeText() {
     const m = mode();
     const modes = {
         'flashcards': 'Karteikarten',
-        'mc': 'Multiple Choice',
         'type': 'Tippen',
         'conjugation': 'Verben',
         'preposition': 'Präpositionen',
@@ -876,7 +910,6 @@ function addCard() {
 
 // Expose global functions for HTML onclick handlers
 window.selectMode = selectMode;
-window.checkMC = checkMC;
 window.toggleSuspend = toggleSuspend;
 window.deleteCard = deleteCard;
 window.addCard = addCard;
