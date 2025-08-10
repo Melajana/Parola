@@ -77,12 +77,9 @@ byId('autoFlipCheck')?.addEventListener('change',e=>{state.settings.autoFlip=e.t
 // Daily Goal
 byId('dailyGoalInput')?.addEventListener('change',e=>{state.dailyGoal=parseInt(e.target.value)||20;save();renderStats()});
 
-// Flashcard Event Listeners
+// Flashcard Event Listeners - Vollautomatisches System
 let autoFlipTimeout=null;
-byId('flashcard')?.addEventListener('click',()=>flipCard());
-byId('againBtn')?.addEventListener('click',()=>gradeCard('again'));
-byId('autoNextBtn')?.addEventListener('click',()=>gradeCard('auto'));
-byId('goodBtn')?.addEventListener('click',()=>gradeCard('good'));
+// Keine Button-Event-Listener mehr nötig - System ist vollautomatisch!
 
 // Old flashcard buttons (fallback)
 byId('oldAgainBtn')?.addEventListener('click',()=>grade('again'));
@@ -222,7 +219,7 @@ const flashcardContainer = byId('flashcardContainer');
 const flashcardActions = byId('flashcardActions');
 if(fcActions)fcActions.style.display='none'; // alte Flashcard-Actions ausblenden
 if(flashcardContainer)flashcardContainer.style.display=isFC?'block':'none';
-if(flashcardActions)flashcardActions.style.display=isFC?'flex':'none';
+if(flashcardActions)flashcardActions.style.display='none'; // Neue Flashcard-Actions auch ausblenden - vollautomatisch
 if(mcActions)mcActions.style.display=isMC?'flex':'none';
 if(mcBox)mcBox.style.display=isMC?'grid':'none';
 if(typeBox)typeBox.style.display=isType?'block':'none';
@@ -292,24 +289,63 @@ function setupFlashcardMode(card,q,a){
     const flashcardFront = byId('flashcard-front');
     const flashcardBack = byId('flashcard-back');
     
-    if (flashcard) flashcard.classList.remove('flipped');
+    console.log('Setting up flashcard mode...');
+    
+    if (flashcard) {
+        flashcard.classList.remove('flipped');
+        console.log('Flashcard setup, classes after reset:', flashcard.className);
+    }
     if (flashcardFront) flashcardFront.innerHTML = `<div><div class="flashcard-word">${q}</div><div class="flashcard-hint">Klicken zum Umdrehen</div></div>`;
-    if (flashcardBack) flashcardBack.innerHTML = `<div class="flashcard-translation">${a}</div>`;
+    if (flashcardBack) flashcardBack.innerHTML = `<div class="flashcard-translation">${a}</div><div class="flashcard-hint">Automatisch weiter in 2,5s...</div>`;
     
     // Automatisches Grading vorbereiten
     window.flashcardStartTime = Date.now();
-    window.currentFlashcard = {card, q, a, flipped: false, thinkingTime: 0};
+    window.currentFlashcard = {card, q, a, flipped: false, thinkingTime: 0, autoTimer: null};
     
-    // Flashcard Click Handler
-    if (flashcard) {
-        flashcard.onclick = () => {
-            if (!window.currentFlashcard.flipped) {
-                window.currentFlashcard.thinkingTime = Date.now() - window.flashcardStartTime;
-                window.currentFlashcard.flipped = true;
-            }
-            flipCard();
-        };
-    }
+    // Warte einen Moment, dann setze den Event-Listener
+    setTimeout(() => {
+        const flashcardDelayed = byId('flashcard');
+        if (flashcardDelayed) {
+            // Entferne alle vorherigen Event-Listener
+            flashcardDelayed.replaceWith(flashcardDelayed.cloneNode(true));
+            
+            // Hole das neue Element nach dem Ersetzen
+            const newFlashcard = byId('flashcard');
+            
+            // Setze neuen Click-Handler
+            newFlashcard.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Flashcard clicked!');
+                
+                if (!window.currentFlashcard.flipped) {
+                    // Erste Drehung: Antwort zeigen
+                    window.currentFlashcard.thinkingTime = Date.now() - window.flashcardStartTime;
+                    window.currentFlashcard.flipped = true;
+                    console.log('Thinking time:', window.currentFlashcard.thinkingTime + 'ms');
+                    
+                    flipCard();
+                    
+                    // Auto-Weiter nach 2,5 Sekunden (Zeit zum Merken)
+                    window.currentFlashcard.autoTimer = setTimeout(() => {
+                        console.log('Auto-progressing to next card...');
+                        const grade = calculateAutoGrade();
+                        console.log('Auto-grade calculated:', grade);
+                        gradeCard(grade);
+                    }, 2500);
+                    
+                } else {
+                    // Zweiter Klick: Sofort weiter (falls User ungeduldig ist)
+                    clearTimeout(window.currentFlashcard.autoTimer);
+                    const grade = calculateAutoGrade();
+                    console.log('Manual skip, auto-grade:', grade);
+                    gradeCard(grade);
+                }
+            });
+            
+            console.log('Click handler attached to flashcard');
+        }
+    }, 100);
 }
 
 function setupConjugationMode(card){const tense=verbTenseSelect?.value||'presente';if(!card.extra?.conjugations?.[tense])return updateLearn();
@@ -401,9 +437,15 @@ function calcStreak(){let s=0;for(let i=0;i<365;i++){const d=new Date();d.setDat
 // Flashcard functions
 function flipCard() {
     const flashcard = byId('flashcard');
+    console.log('flipCard called, flashcard element:', flashcard);
     if (flashcard) {
+        const wasFlipped = flashcard.classList.contains('flipped');
         flashcard.classList.toggle('flipped');
+        console.log('Flashcard flipped from', wasFlipped, 'to', flashcard.classList.contains('flipped'));
+        console.log('Flashcard classes:', flashcard.className);
         clearTimeout(autoFlipTimeout);
+    } else {
+        console.error('Flashcard element not found in flipCard!');
     }
 }
 
