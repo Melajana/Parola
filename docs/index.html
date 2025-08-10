@@ -41,25 +41,25 @@
     <div class="mode-selector" style="margin: 20px 0;">
       <div style="margin-bottom: 12px; font-weight: 600; color: var(--text);">Wähle deinen Lernmodus:</div>
       <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-        <button class="btn ghost clickfx mode-btn" id="quickFlashcards" data-mode="flashcards">
+        <button class="btn ghost clickfx mode-btn" id="quickFlashcards" data-mode="flashcards" onclick="selectMode('flashcards')">
           📚 Karteikarten
         </button>
-        <button class="btn ghost clickfx mode-btn" id="quickMC" data-mode="mc">
+        <button class="btn ghost clickfx mode-btn" id="quickMC" data-mode="mc" onclick="selectMode('mc')">
           🎯 Multiple Choice
         </button>
-        <button class="btn ghost clickfx mode-btn" id="quickType" data-mode="type">
+        <button class="btn ghost clickfx mode-btn" id="quickType" data-mode="type" onclick="selectMode('type')">
           ⌨️ Tippen
         </button>
-        <button class="btn ghost clickfx mode-btn" id="quickConjugation" data-mode="conjugation">
+        <button class="btn ghost clickfx mode-btn" id="quickConjugation" data-mode="conjugation" onclick="selectMode('conjugation')">
           ⚡ Verben
         </button>
-        <button class="btn ghost clickfx mode-btn" id="quickPreposition" data-mode="preposition">
+        <button class="btn ghost clickfx mode-btn" id="quickPreposition" data-mode="preposition" onclick="selectMode('preposition')">
           🔗 Präpositionen
         </button>
-        <button class="btn ghost clickfx mode-btn" id="quickArticles" data-mode="articles">
+        <button class="btn ghost clickfx mode-btn" id="quickArticles" data-mode="articles" onclick="selectMode('articles')">
           🎯 Artikel
         </button>
-        <button class="btn ghost clickfx mode-btn" id="quickGaptext" data-mode="gaptext">
+        <button class="btn ghost clickfx mode-btn" id="quickGaptext" data-mode="gaptext" onclick="selectMode('gaptext')">
           📝 Lückentext
         </button>
       </div>

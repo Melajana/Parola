@@ -254,30 +254,42 @@ function showView(viewName) {
 
 // Mode selection with visual feedback
 function selectMode(modeName) {
+    console.log('selectMode called with:', modeName);
+    
     // Clear previous active states
     document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.classList.remove('active');
     });
     
     // Set active mode
-    const modeBtn = byId(`quick${modeName.charAt(0).toUpperCase() + modeName.slice(1)}`);
+    const targetId = `quick${modeName.charAt(0).toUpperCase() + modeName.slice(1)}`;
+    console.log('Looking for button with ID:', targetId);
+    
+    const modeBtn = byId(targetId);
     if (modeBtn) {
+        console.log('Found mode button, activating');
         modeBtn.classList.add('active');
+    } else {
+        console.log('Mode button not found!');
     }
     
     // Update state
     state.settings.mode = modeName;
     currentId = null;
     save();
+    console.log('Calling updateLearn...');
     updateLearn();
 }
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing app...');
+    
     // Tab navigation
     document.querySelectorAll('[data-tab]').forEach(btn => {
         btn.addEventListener('click', () => {
             const tabName = btn.getAttribute('data-tab');
+            console.log('Tab clicked:', tabName);
             showView(tabName);
             if (tabName === 'learn') {
                 updateLearn();
@@ -288,9 +300,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Mode selection buttons
-    document.querySelectorAll('.mode-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    console.log('Found mode buttons:', modeButtons.length);
+    
+    modeButtons.forEach(btn => {
+        console.log('Setting up button:', btn.id, 'with mode:', btn.getAttribute('data-mode'));
+        btn.addEventListener('click', (e) => {
+            console.log('Mode button clicked:', btn.id);
             const mode = btn.getAttribute('data-mode');
+            console.log('Mode to select:', mode);
             selectMode(mode);
         });
     });
@@ -859,6 +877,7 @@ function addCard() {
 }
 
 // Expose global functions for HTML onclick handlers
+window.selectMode = selectMode;
 window.checkMC = checkMC;
 window.toggleSuspend = toggleSuspend;
 window.deleteCard = deleteCard;
