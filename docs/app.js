@@ -56,8 +56,47 @@ function showAchievementNotification(achievements){achievements.forEach(ach=>{co
 function successPct(it){const a=it.attempts||0,c=it.correct||0;return a?Math.round((c/a)*100):null}
 function levenshtein(a,b){const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>Array(n+1).fill(0));for(let i=0;i<=m;i++)dp[i][0]=i;for(let j=0;j<=n;j++)dp[0][j]=j;for(let i=1;i<=m;i++){for(let j=1;j<=n;j++){const cost=a[i-1]===b[j-1]?0:1;dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+cost)}}return dp[m][n]}
 function isClose(a,b){const A=norm(a),B=norm(b);if(!A||!B)return false;if(A===B)return true;const dist=levenshtein(A,B);const tol=Math.max(0,Math.round((state.settings.tolerance||20)/100*B.length));return dist<=tol}
-const tabsEl=byId('tabs'),views={learn:byId('view-learn'),list:byId('view-list'),add:byId('view-add'),settings:byId('view-settings')};
-tabsEl.addEventListener('click',e=>{const btn=e.target.closest('button[data-tab]');if(!btn)return;tabsEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));const tab=btn.dataset.tab;Object.entries(views).forEach(([id,el])=>el.hidden=id!==tab);if(tab==='learn')updateLearn();if(tab==='list')renderList();if(tab==='settings')renderStats()});
+const tabsEl=byId('tabs'),views={
+  learn:byId('view-learn'),
+  list:byId('view-list'),
+  add:byId('view-add'),
+  settings:byId('view-settings')
+};
+
+// Verbesserte Tab-Navigation
+tabsEl?.addEventListener('click',e=>{
+  const btn=e.target.closest('button[data-tab]');
+  if(!btn) return;
+  
+  // Alle Tab-Buttons deaktivieren, aktiven Button aktivieren
+  tabsEl.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));
+  
+  const tab=btn.dataset.tab;
+  
+  // Alle Views verstecken, aktive View anzeigen
+  Object.entries(views).forEach(([id,el])=>{
+    if(el) el.hidden = id !== tab;
+  });
+  
+  // Tab-spezifische Initialisierung
+  switch(tab) {
+    case 'learn':
+      updateLearn();
+      break;
+    case 'list':
+      renderList();
+      break;
+    case 'settings':
+      renderStats();
+      break;
+    case 'add':
+      // Optional: Focus auf erstes Eingabefeld
+      const firstInput = views.add?.querySelector('input');
+      if(firstInput) firstInput.focus();
+      break;
+  }
+});
+
 const learnWord=byId('learnWord'),learnMeta=byId('learnMeta'),answerBox=byId('answerBox'),dueCounter=byId('dueCounter'),fcActions=byId('fcActions'),mcActions=byId('mcActions'),mcBox=byId('mcBox'),typeBox=byId('typeBox'),typeInput=byId('typeInput'),typeFeedback=byId('typeFeedback'),modeSelect=byId('modeSelect'),dirSelect=byId('dirSelect'),cardTypeSelect=byId('cardTypeSelect'),categorySelect=byId('categorySelect'),verbTenseSelect=byId('verbTenseSelect'),verbTenseControls=byId('verbTenseControls'),conjugationBox=byId('conjugationBox'),conjugationInput=byId('conjugationInput'),conjFeedback=byId('conjFeedback'),prepositionBox=byId('prepositionBox'),prepOptions=byId('prepOptions'),prepFeedback=byId('prepFeedback'),articleBox=byId('articleBox'),articleOptions=byId('articleOptions'),articleFeedback=byId('articleFeedback'),gaptextBox=byId('gaptextBox'),gaptextInput=byId('gaptextInput'),gaptextFeedback=byId('gaptextFeedback');
 modeSelect.value=state.settings.mode;dirSelect.value=state.settings.direction;
 modeSelect.addEventListener('change',()=>{state.settings.mode=modeSelect.value;currentId=null;save();updateLearn();updateVerbTenseControls()});
@@ -95,8 +134,20 @@ function renderList(){const q=(searchInput.value||'').toLowerCase();const stat=s
 function getTypeBadge(type){if(!type||type==='vocab')return'';const badges={prep:'<span class="card-type-badge badge-prep">PREP</span>',verb:'<span class="card-type-badge badge-verb">VERB</span>',vocab:'<span class="card-type-badge badge-vocab">VOK</span>',article:'<span class="card-type-badge badge-article">ART</span>'};return badges[type]||''}
 const itInput=byId('itInput'),deInput=byId('deInput'),notesInput=byId('notesInput'),addTypeSelect=byId('addTypeSelect'),verbForm=byId('verbForm'),basicForm=byId('basicForm');
 
-// Add Type Select Handler
-addTypeSelect?.addEventListener('change',()=>{const isVerb=addTypeSelect.value==='verb';verbForm.style.display=isVerb?'block':'none';basicForm.style.display=isVerb?'none':'block'});
+// Verbesserter Add Type Select Handler
+addTypeSelect?.addEventListener('change',()=>{const isVerb = addTypeSelect.value === 'verb';  
+  // Sicherstellen dass beide Elemente existieren
+  if(verbForm) verbForm.style.display = isVerb ? 'block' : 'none';
+  if(basicForm) basicForm.style.display = isVerb ? 'none' : 'block';
+  
+  // Optional: Focus auf erstes Eingabefeld der aktiven Form
+  if(isVerb) {
+    const firstVerbInput = verbForm.querySelector('input');
+    if(firstVerbInput) firstVerbInput.focus();
+  } else {
+    if(itInput) itInput.focus();
+  }
+});
 
 byId('addBtn')?.addEventListener('click',()=>{const type=addTypeSelect?.value||'vocab';
 if(type==='verb'){
@@ -147,172 +198,4 @@ byId('conjCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentConju
 // Artikel-Training Event Listeners
 byId('articleCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentArticle)return;const c=cardById(currentId);const correct=c.extra?.article;const ok=currentArticle.selected===correct;articleFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct+' '+c.extra.word;articleFeedback.className='type-feedback '+(ok?'ok':'bad');articleFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)});
 
-// Lückentext Event Listeners  
-byId('gaptextRevealBtn')?.addEventListener('click',()=>{if(!currentId||!currentGaptext)return;gaptextFeedback.textContent='Antwort: '+currentGaptext.answer;gaptextFeedback.className='type-feedback';gaptextFeedback.style.display='block'});
-
-byId('gaptextCheckBtn')?.addEventListener('click',()=>{if(!currentId||!currentGaptext)return;const ok=isClose(gaptextInput.value,currentGaptext.answer);gaptextFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+currentGaptext.answer;gaptextFeedback.className='type-feedback '+(ok?'ok':'bad');gaptextFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)});
-
-gaptextInput?.addEventListener('keydown',e=>{if(e.key==='Enter'){byId('gaptextCheckBtn').click()}});
-
-// Standard Learning Event Listeners
-byId('revealBtn')?.addEventListener('click',()=>{if(!currentId)return;const c=cardById(currentId);const a=dir()==='it-de'?c.de:c.it;answerBox.textContent='Antwort: '+a;answerBox.style.display='block'});
-byId('againBtn')?.addEventListener('click',()=>grade('again'));
-byId('goodBtn')?.addEventListener('click',()=>grade('good'));
-byId('skipBtn')?.addEventListener('click',()=>{currentId=null;updateLearn()});
-byId('nextBtn')?.addEventListener('click',()=>grade(lastCorrect?'good':'again'));
-
-function cardById(id){return state.items.find(i=>i.id===id)}
-function dir(){return state.settings.direction}
-function mode(){return state.settings.mode}
-function pickDue(){let due=state.items.filter(i=>!i.suspended&&(i.dueAt||0)<=now());const cardType=state.settings.cardType||cardTypeSelect?.value||'all';const category=state.settings.category||categorySelect?.value||'all';const currentMode=mode();
-// Modus-spezifische Filterung
-if(currentMode==='conjugation'){due=due.filter(i=>i.type==='verb')}
-else if(currentMode==='preposition'){due=due.filter(i=>i.type==='prep')}
-else if(currentMode==='articles'){due=due.filter(i=>i.type==='article')}
-else if(currentMode==='gaptext'){due=due.filter(i=>i.type==='prep')}
-else {
-// Für andere Modi (flashcards, mc, type) normale Filter anwenden
-if(cardType!=='all'){due=due.filter(i=>i.type===cardType)}
-}
-if(category!=='all'){due=due.filter(i=>i.category===category)}if(!due.length)return null;due.sort((a,b)=>(a.dueAt||0)-(b.dueAt||0));return due[0]}
-function updateLearn(){const card=pickDue();const m=mode();const isMC=(m==='mc'),isType=(m==='type'),isConj=(m==='conjugation'),isPrep=(m==='preposition'),isArticle=(m==='articles'),isGap=(m==='gaptext');
-// Alle Modi zurücksetzen - mit Null-Checks
-if(mcActions)mcActions.style.display=isMC?'flex':'none';
-if(mcBox)mcBox.style.display=isMC?'grid':'none';
-if(typeBox)typeBox.style.display=isType?'block':'none';
-if(conjugationBox)conjugationBox.style.display=isConj?'block':'none';
-if(prepositionBox)prepositionBox.style.display=isPrep?'block':'none';
-if(articleBox)articleBox.style.display=isArticle?'block':'none';
-if(gaptextBox)gaptextBox.style.display=isGap?'block':'none';
-// Feedback zurücksetzen - mit Null-Checks
-if(answerBox){answerBox.style.display='none';answerBox.textContent=''}
-if(typeFeedback)typeFeedback.style.display='none';
-if(conjFeedback)conjFeedback.style.display='none';
-if(prepFeedback)prepFeedback.style.display='none';
-if(articleFeedback)articleFeedback.style.display='none';
-if(gaptextFeedback)gaptextFeedback.style.display='none';
-// Eingaben leeren - mit Null-Checks
-if(typeInput)typeInput.value='';
-if(conjugationInput)conjugationInput.value='';
-if(gaptextInput)gaptextInput.value='';
-const nextBtn=byId('nextBtn');if(nextBtn)nextBtn.disabled=true;
-// Counter aktualisieren
-const due=state.items.filter(i=>!i.suspended&&(i.dueAt||0)<=now());
-if(dueCounter)dueCounter.textContent=due.length?`Fällig: ${due.length}`:'Nichts fällig';
-if(!card){
-if(learnWord)learnWord.textContent='🎉 Nichts fällig!';
-if(learnMeta)learnMeta.innerHTML=getModeText()+' – '+getDirText();
-currentId=null;resetCurrentStates();
-if(mcBox)mcBox.innerHTML='';
-if(prepOptions)prepOptions.innerHTML='';
-if(articleOptions)articleOptions.innerHTML='';
-return}
-currentId=card.id;resetCurrentStates();
-// Spezielle Modi
-if(isConj&&card.type==='verb'){setupConjugationMode(card);return}
-if(isPrep&&card.type==='prep'){setupPrepositionMode(card);return}
-if(isArticle&&card.type==='article'){setupArticleMode(card);return}
-if(isGap){setupGaptextMode(card);return}
-// Standard Modi (Vokabeln, MC, Type)
-const q=dir()==='it-de'?card.it:card.de;const a=dir()==='it-de'?card.de:card.it;
-if(learnWord)learnWord.textContent=q;
-if(learnMeta)learnMeta.innerHTML=getModeText()+' – '+getDirText()+getCategoryBadge(card);
-// Auto-Ausspreche für italienische Wörter
-if(dir()==='it-de'&&state.settings.autoSpeak){autoSpeak(q,true)}
-if(isMC){setupMCMode(card,q,a)}}
-
-function resetCurrentStates(){currentConjugation=null;currentPrepContext=null;currentArticle=null;currentGaptext=null}
-
-function getCategoryBadge(card){if(!card.category)return'';return' '+getTypeBadge(card.type)}
-
-function setupMCMode(card,q,a){if(!mcBox)return;const pool=shuffle(state.items.filter(i=>i.id!==card.id&&i.type===card.type));const distractors=pool.slice(0,3).map(x=>dir()==='it-de'?x.de:x.it);const options=shuffle([a,...distractors]);mcBox.innerHTML='';options.forEach(opt=>{const b=document.createElement('button');b.type='button';b.className='btn ghost mc-option';b.textContent=opt;b.addEventListener('click',()=>{if(b.classList.contains('correct')||b.classList.contains('wrong'))return;const ok=norm(opt)===norm(a);lastCorrect=ok;b.classList.add(ok?'correct':'wrong');if(!ok){[...mcBox.children].forEach(btn=>{if(norm(btn.textContent)===norm(a))btn.classList.add('correct')})}const nextBtn=byId('nextBtn');if(nextBtn)nextBtn.disabled=false});mcBox.appendChild(b)})}
-
-function setupMCMode(card,q,a){if(!mcBox)return;const pool=shuffle(state.items.filter(i=>i.id!==card.id&&i.type===card.type));const distractors=pool.slice(0,3).map(x=>dir()==='it-de'?x.de:x.it);const options=shuffle([a,...distractors]);mcBox.innerHTML='';options.forEach(opt=>{const b=document.createElement('button');b.type='button';b.className='btn ghost mc-option';b.textContent=opt;b.addEventListener('click',()=>{if(b.classList.contains('correct')||b.classList.contains('wrong'))return;const ok=norm(opt)===norm(a);lastCorrect=ok;b.classList.add(ok?'correct':'wrong');if(!ok){[...mcBox.children].forEach(btn=>{if(norm(btn.textContent)===norm(a))btn.classList.add('correct')})}const nextBtn=byId('nextBtn');if(nextBtn)nextBtn.disabled=false});mcBox.appendChild(b)})}
-
-function setupConjugationMode(card){const tense=verbTenseSelect?.value||'presente';if(!card.extra?.conjugations?.[tense])return updateLearn();
-const pronouns=['io','tu','lui','lei','noi','voi','loro'];const pronoun=pronouns[Math.floor(Math.random()*pronouns.length)];currentConjugation={pronoun,card,tense};
-learnWord.textContent=card.extra.infinitive||card.it;learnMeta.textContent='Konjugation – '+getTenseName(tense);byId('conjugationPronoun').textContent=pronoun;conjFeedback.style.display='none';conjugationInput.value='';conjugationInput.focus()}
-
-function setupPrepositionMode(card){const contexts=card.extra?.contexts||getPrepositionContexts()[card.it];if(!contexts||!contexts.length)return updateLearn();
-const context=contexts[Math.floor(Math.random()*contexts.length)];const allPreps=['a','di','da','in','con','per','su','tra','fra'];const correctPrep=card.it;const distractors=shuffle(allPreps.filter(p=>p!==correctPrep)).slice(0,3);const options=shuffle([correctPrep,...distractors]);
-currentPrepContext={context,correct:correctPrep};
-const contextEl=byId('prepositionContext');
-if(contextEl)contextEl.textContent=context;
-if(learnWord)learnWord.textContent=''; // Leeres Hauptwort für Präposition-Modus
-learnMeta.innerHTML='Präposition – Kontext';prepOptions.innerHTML='';prepFeedback.style.display='none';
-options.forEach(prep=>{const btn=document.createElement('button');btn.className='btn ghost';btn.textContent=prep;btn.addEventListener('click',()=>checkPreposition(prep,correctPrep));prepOptions.appendChild(btn)})}
-
-function setupArticleMode(card){if(!card.extra?.article||!card.extra?.word)return updateLearn();
-const articles=['il','la','lo','l\'','i','gli','le'];const correct=card.extra.article;const distractors=shuffle(articles.filter(a=>a!==correct)).slice(0,3);const options=shuffle([correct,...distractors]);
-currentArticle={correct,word:card.extra.word};byId('articleWord').textContent=card.extra.word;
-if(learnWord)learnWord.textContent=''; // Leeres Hauptwort für Artikel-Modus
-learnMeta.textContent='Artikel-Training';articleOptions.innerHTML='';articleFeedback.style.display='none';
-options.forEach(article=>{const btn=document.createElement('button');btn.className='btn ghost';btn.textContent=article;btn.addEventListener('click',()=>checkArticle(article,correct));articleOptions.appendChild(btn)})}
-
-function setupGaptextMode(card){const templates=getGaptextTemplates();const template=templates[Math.floor(Math.random()*templates.length)];const answer=generateGaptextAnswer(card,template);
-const gaptextSentence=byId('gaptextSentence');if(gaptextSentence)gaptextSentence.textContent=template.sentence.replace('___','_____');
-currentGaptext={template,answer:answer.answer,card};
-if(learnWord)learnWord.textContent=''; // Leeres Hauptwort für Lückentext-Modus
-if(learnMeta)learnMeta.textContent='Lückentext – '+template.type;if(gaptextFeedback)gaptextFeedback.style.display='none';if(gaptextInput){gaptextInput.value='';gaptextInput.focus()}}
-
-function checkArticle(selected,correct){const buttons=articleOptions.querySelectorAll('button');buttons.forEach(btn=>{btn.disabled=true;if(btn.textContent===correct){btn.classList.add('correct')}else if(btn.textContent===selected&&selected!==correct){btn.classList.add('wrong')}});
-currentArticle.selected=selected;const ok=selected===correct;articleFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct;articleFeedback.className='type-feedback '+(ok?'ok':'bad');articleFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)}
-
-function getTenseName(tense){const names={presente:'Presente',passato_prossimo:'Passato Prossimo',imperfetto:'Imperfetto'};return names[tense]||tense}
-
-function getGaptextTemplates(){return[{sentence:'Io ___ a casa',type:'Verb',answer_type:'verb'},{sentence:'Il libro ___ Maria',type:'Präposition',answer_type:'prep'},{sentence:'___ ragazzo è simpatico',type:'Artikel',answer_type:'article'}]}
-
-function generateGaptextAnswer(card,template){if(template.answer_type==='verb'&&card.type==='verb'){const tense=verbTenseSelect?.value||'presente';const pronoun='io';return{blank:'___',answer:card.extra?.conjugations?.[tense]?.[pronoun]||card.it}}
-if(template.answer_type==='prep'&&card.type==='prep'){return{blank:'___',answer:card.it}}
-if(template.answer_type==='article'&&card.extra?.article){return{blank:'___',answer:card.extra.article}}
-return{blank:'___',answer:card.it}}
-
-function getModeText(){const m=mode();return m==='mc'?'Multiple Choice':m==='type'?'Tippen':m==='conjugation'?'Konjugation':m==='preposition'?'Präposition':m==='articles'?'Artikel':m==='gaptext'?'Lückentext':'Lernen'}
-
-function getDirText(){return dir()==='it-de'?'IT→DE':'DE→IT'}
-
-function checkPreposition(selected,correct){const buttons=prepOptions.querySelectorAll('button');buttons.forEach(btn=>{btn.disabled=true;if(btn.textContent===correct){btn.classList.add('correct')}else if(btn.textContent===selected&&selected!==correct){btn.classList.add('wrong')}});
-const ok=selected===correct;prepFeedback.textContent=ok?'Richtig!':'Richtig wäre: '+correct;prepFeedback.className='type-feedback '+(ok?'ok':'bad');prepFeedback.style.display='block';setTimeout(()=>grade(ok?'good':'again'),1500)}
-
-function getPrepositionContexts(){return{a:['Vado ___ scuola','Penso ___ te','Arrivo ___ Milano'],di:['Il libro ___ Maria','Sono ___ Roma','Parlo ___ te'],da:['Vengo ___ casa','Aspetto ___ ieri','Vado ___ medico'],in:['Siamo ___ Italia','Vivo ___ città','Studio ___ biblioteca'],con:['Vengo ___ te','Parlo ___ lui','Mangio ___ gli amici'],per:['Questo è ___ te','Parto ___ Roma','Studio ___ l\'esame']}}
-function grade(result){if(!currentId)return;
-// Speed Learning Tracking
-if(!state.speedSession){state.speedSession={start:Date.now(),count:0}}state.speedSession.count++;
-const idx=state.items.findIndex(i=>i.id===currentId);if(idx<0)return;state.items[idx]=nextSchedule(state.items[idx],result);addHistory(result);save();currentId=null;updateLearn();renderList();renderStats()}
-byId('exportBtn')?.addEventListener('click',()=>{const data=JSON.stringify(state,null,2);download('parola-export.json',data)});
-byId('clearBtn')?.addEventListener('click',()=>{if(!confirm('Alle Daten löschen?'))return;state.items=[];save();renderList();updateLearn();renderStats()});
-byId('fileJson')?.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||!Array.isArray(o.items))throw new Error('Ungültig');state.items=o.items;if(o.settings)state.settings=o.settings;if(Array.isArray(o.history))state.history=o.history;save();renderList();updateLearn();renderStats();alert('Import OK')}catch{alert('JSON ungültig')}};r.readAsText(f)});
-byId('fileCsv')?.addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const rows=r.result.split(/\r?\n/).filter(Boolean);if(!rows.length)return alert('Leere CSV');const head=rows.shift().split(',').map(x=>x.trim().toLowerCase());const iit=head.indexOf('it'),ide=head.indexOf('de'),inotes=head.indexOf('notes');if(iit<0||ide<0)return alert('CSV braucht Spalten it,de');const items=[];for(const line of rows){const cols=line.split(',');const it=cols[iit]?.trim(),de=cols[ide]?.trim(),notes=inotes>=0?(cols[inotes]?.trim()||undefined):undefined;if(it&&de){items.push({id:uid(),it,de,notes,createdAt:now(),dueAt:now(),intervalIndex:0,streak:0,suspended:false,attempts:0,correct:0})}}if(!items.length)return alert('Keine gültigen Zeilen');state.items=[...items,...state.items];save();renderList();updateLearn();renderStats();alert(items.length+' Einträge importiert')};r.readAsText(f)});
-byId('csvTplBtn')?.addEventListener('click',()=>{download('parola-template.csv','it,de,notes\nragazzo,Junge,\nacqua,Wasser,\n')});
-function download(filename,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:filename.endsWith('.csv')?'text/csv':'application/json'}));a.download=filename;a.click();URL.revokeObjectURL(a.href)}
-function renderStats(){const today=state.history.find(x=>x.d===todayKey())||{good:0,bad:0};const totalGood=state.history.reduce((s,x)=>s+(x.good||0),0),totalBad=state.history.reduce((s,x)=>s+(x.bad||0),0);const todayTotal=today.good+today.bad;const goalProgress=Math.min(100,(todayTotal/state.dailyGoal)*100);
-byId('statToday').textContent=todayTotal;byId('statTotal').textContent=(totalGood+totalBad);byId('statStreak').textContent=calcStreak();byId('statLevel').textContent=Math.floor((totalGood+totalBad)/20)+1;
-// Goal Progress
-byId('goalProgress').textContent=`${todayTotal}/${state.dailyGoal}`;const goalEl=document.querySelector('.goal-progress');if(goalEl)goalEl.style.setProperty('--progress',goalProgress+'%');
-// Update Settings UI
-if(byId('dailyGoalInput'))byId('dailyGoalInput').value=state.dailyGoal||20;if(byId('autoSpeakCheck'))byId('autoSpeakCheck').checked=state.settings.autoSpeak||false;if(byId('speechRateSelect'))byId('speechRateSelect').value=state.settings.speechRate||0.8;
-renderAchievements();renderCategoryStats();drawStatsChart()}
-
-function renderAchievements(){const achievements=[
-{id:'first_word',name:'Erste Schritte',desc:'Erstes Wort gelernt',icon:'🌱'},
-{id:'streak_3',name:'Auf dem Weg',desc:'3 Tage in Folge gelernt',icon:'🔥'},
-{id:'streak_7',name:'Woche geschafft!',desc:'7 Tage Streak erreicht',icon:'🚀'},
-{id:'streak_30',name:'Monats-Meister',desc:'30 Tage Streak!',icon:'👑'},
-{id:'vocab_master',name:'Vokabel-Profi',desc:'50 Vokabeln gemeistert',icon:'📚'},
-{id:'verb_master',name:'Verb-Experte',desc:'Alle 3 Zeiten gemeistert',icon:'⚡'},
-{id:'article_expert',name:'Artikel-Ass',desc:'Alle Artikel perfekt',icon:'🎯'},
-{id:'perfect_day',name:'Perfekter Tag',desc:'20 richtige Antworten an einem Tag',icon:'⭐'},
-{id:'speed_demon',name:'Schnell-Lerner',desc:'10 Antworten in 5 Minuten',icon:'💨'},
-{id:'polyglot',name:'Polyglott',desc:'100 Wörter gelernt',icon:'🌍'}
-];
-const container=byId('achievementsList');if(!container)return;container.innerHTML='';achievements.forEach(ach=>{const earned=state.achievements.includes(ach.id);const div=document.createElement('div');div.className='achievement'+(earned?' earned':'');div.innerHTML=`<span class="achievement-icon">${ach.icon}</span><div><strong>${ach.name}</strong><br><small>${ach.desc}</small></div>`;container.appendChild(div)})}
-
-function renderCategoryStats(){const categories=['greetings','food','family','verbs','grammar','articles'];const container=byId('categoryStats');if(!container)return;container.innerHTML='';categories.forEach(cat=>{const items=state.items.filter(i=>i.category===cat);const correct=items.reduce((sum,i)=>(sum+(i.correct||0)),0);const total=items.reduce((sum,i)=>(sum+(i.attempts||0)),0);const pct=total>0?Math.round((correct/total)*100):0;
-const div=document.createElement('div');div.className='category-stat';div.innerHTML=`<h5>${getCategoryName(cat)}</h5><div>${correct}/${total} richtig (${pct}%)</div><div class="category-progress"><div class="category-progress-bar" style="width:${pct}%"></div></div>`;container.appendChild(div)})}
-
-function getCategoryName(cat){const names={greetings:'Begrüßungen',food:'Essen',family:'Familie',verbs:'Verben',grammar:'Grammatik',articles:'Artikel'};return names[cat]||cat}
-
-function drawStatsChart(){const ctx=byId('statsChart')?.getContext('2d');if(!ctx)return;ctx.clearRect(0,0,600,160);const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=todayKey(d);const row=state.history.find(x=>x.d===k)||{good:0,bad:0};days.push({label:k.slice(5),good:row.good,bad:row.bad})}const W=600,H=160,pad=24,barW=(W-2*pad)/7*.6;ctx.font='12px Inter, sans-serif';ctx.textBaseline='top';const css=getComputedStyle(document.documentElement);const colT=css.getPropertyValue('--text')||'#000',colG=css.getPropertyValue('--ok')||'#2e7d32',colR=css.getPropertyValue('--bad')||'#c62828';const maxV=Math.max(1,...days.map(d=>d.good+d.bad));days.forEach((d,i)=>{const x=pad+(W-2*pad)/7*i+((W-2*pad)/7-barW)/2;const scale=(H-2*pad)/maxV;const hG=d.good*scale,hB=d.bad*scale;ctx.fillStyle=colR;ctx.fillRect(x,H-pad-hB,barW,hB);ctx.fillStyle=colG;ctx.fillRect(x,H-pad-hB-hG,barW,hG);ctx.fillStyle=colT;ctx.fillText(d.label,x,H-pad+4)})}
-function calcStreak(){let s=0;for(let i=0;i<365;i++){const d=new Date();d.setDate(d.getDate()-i);const k=todayKey(d);const row=state.history.find(x=>x.d===k);if(!row||((row.good||0)+(row.bad||0))===0){if(i===0)continue;break}s++}return s}
-
-renderList();updateLearn();renderStats();
+// Lückentext Event Listener
