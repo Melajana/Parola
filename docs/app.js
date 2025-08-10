@@ -80,10 +80,9 @@ byId('dailyGoalInput')?.addEventListener('change',e=>{state.dailyGoal=parseInt(e
 // Flashcard Event Listeners
 let autoFlipTimeout=null;
 byId('flashcard')?.addEventListener('click',()=>flipCard());
-byId('hardBtn')?.addEventListener('click',()=>gradeCard('again'));
 byId('againBtn')?.addEventListener('click',()=>gradeCard('again'));
+byId('autoNextBtn')?.addEventListener('click',()=>gradeCard('auto'));
 byId('goodBtn')?.addEventListener('click',()=>gradeCard('good'));
-byId('easyBtn')?.addEventListener('click',()=>gradeCard('good'));
 
 // Old flashcard buttons (fallback)
 byId('oldAgainBtn')?.addEventListener('click',()=>grade('again'));
@@ -236,7 +235,8 @@ if(gaptextBox)gaptextBox.style.display=isGap?'block':'none';
 if(learnWord)learnWord.style.display=isFC?'none':'block';
 if(learnMeta)learnMeta.style.display=isFC?'none':'block';
 const speakBtn = byId('speakBtn');
-if(speakBtn)speakBtn.style.display=isFC?'none':'inline-flex';
+// Lautsprecher-Button nur bei normalen Modi anzeigen, nicht bei Flashcards, Präpositionen, Artikel oder Lückentext
+if(speakBtn)speakBtn.style.display=(isFC||isPrep||isArticle||isGap)?'none':'inline-flex';
 
 // Feedback zurücksetzen - mit Null-Checks
 if(answerBox){answerBox.style.display='none';answerBox.textContent=''}
@@ -296,9 +296,19 @@ function setupFlashcardMode(card,q,a){
     if (flashcardFront) flashcardFront.innerHTML = `<div><div class="flashcard-word">${q}</div><div class="flashcard-hint">Klicken zum Umdrehen</div></div>`;
     if (flashcardBack) flashcardBack.innerHTML = `<div class="flashcard-translation">${a}</div>`;
     
+    // Automatisches Grading vorbereiten
+    window.flashcardStartTime = Date.now();
+    window.currentFlashcard = {card, q, a, flipped: false, thinkingTime: 0};
+    
     // Flashcard Click Handler
     if (flashcard) {
-        flashcard.onclick = () => flipCard();
+        flashcard.onclick = () => {
+            if (!window.currentFlashcard.flipped) {
+                window.currentFlashcard.thinkingTime = Date.now() - window.flashcardStartTime;
+                window.currentFlashcard.flipped = true;
+            }
+            flipCard();
+        };
     }
 }
 
@@ -410,6 +420,12 @@ function startAutoFlip() {
 
 function gradeCard(result) {
     clearTimeout(autoFlipTimeout);
+    
+    // Intelligentes Auto-Grading basierend auf Benutzerverhalten
+    if (result === 'auto') {
+        result = calculateAutoGrade();
+    }
+    
     grade(result);
     setTimeout(() => {
         const flashcard = byId('flashcard');
@@ -417,6 +433,33 @@ function gradeCard(result) {
             flashcard.classList.remove('flipped');
         }
     }, 300);
+}
+
+function calculateAutoGrade() {
+    if (!window.currentFlashcard) return 'good';
+    
+    const card = window.currentFlashcard.card;
+    const thinkingTime = window.currentFlashcard.thinkingTime;
+    
+    // Faktoren für die Bewertung
+    const successRate = card.attempts > 0 ? (card.correct || 0) / card.attempts : 0;
+    const currentStreak = card.streak || 0;
+    
+    // Denkzeit-Analyse (in Millisekunden)
+    const isQuickAnswer = thinkingTime < 3000;  // unter 3 Sekunden
+    const isSlowAnswer = thinkingTime > 10000;  // über 10 Sekunden
+    
+    // Entscheidungslogik
+    if (successRate < 0.4 || currentStreak === 0 || isSlowAnswer) {
+        // Schwieriges Wort: niedrige Erfolgsrate, kein Streak, oder langsame Antwort
+        return 'again';
+    } else if (successRate > 0.8 && currentStreak >= 2 && isQuickAnswer) {
+        // Einfaches Wort: hohe Erfolgsrate, guter Streak, schnelle Antwort
+        return 'good';
+    } else {
+        // Standard: mittlere Schwierigkeit
+        return 'good';
+    }
 }
 
 renderList();updateLearn();renderStats();
