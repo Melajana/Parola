@@ -280,6 +280,82 @@ function selectMode(modeName) {
     updateLearn();
 }
 
+// Data management functions
+function exportData() {
+    const data = JSON.stringify(state, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `parola-export-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    alert('Daten wurden exportiert!');
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            if (!importedData.items || !Array.isArray(importedData.items)) {
+                throw new Error('Ungültiges Datenformat');
+            }
+            
+            if (confirm(`${importedData.items.length} Karten importieren? Dies ersetzt alle aktuellen Daten.`)) {
+                // Merge with existing data or replace
+                const shouldMerge = confirm('Möchten Sie die Daten zusammenführen? (Nein = komplett ersetzen)');
+                
+                if (shouldMerge) {
+                    // Add imported items to existing ones
+                    importedData.items.forEach(item => {
+                        if (!state.items.find(existing => existing.id === item.id)) {
+                            state.items.push(item);
+                        }
+                    });
+                } else {
+                    // Replace completely
+                    Object.assign(state, importedData);
+                }
+                
+                save();
+                renderList();
+                updateLearn();
+                alert('Daten wurden erfolgreich importiert!');
+            }
+        } catch (error) {
+            alert('Fehler beim Import: ' + error.message);
+        }
+    };
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
+}
+
+function clearAllData() {
+    const itemCount = state.items.length;
+    if (confirm(`Wirklich ALLE ${itemCount} Karten löschen? Diese Aktion kann nicht rückgängig gemacht werden!`)) {
+        if (confirm('Sind Sie sicher? Alle Fortschritte gehen verloren!')) {
+            state.items = [];
+            state.history = [];
+            state.achievements = [];
+            state.streak = 0;
+            save();
+            renderList();
+            updateLearn();
+            alert('Alle Daten wurden gelöscht.');
+        }
+    }
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing app...');
@@ -453,6 +529,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 feedback.style.display = 'block';
             }
         };
+    }
+    
+    // Add button functionality
+    const addBtn = byId('addBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', addCard);
+    }
+    
+    // Reset button functionality
+    const resetBtn = byId('resetBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            // Clear all input fields
+            const inputs = ['itInput', 'deInput', 'notesInput', 'prepWord', 'prepMeaning', 'prepDescription', 'prepContext1', 'prepContext2', 'prepContext3', 'articleWord', 'articleTranslation', 'articleNotes'];
+            inputs.forEach(id => {
+                const input = byId(id);
+                if (input) input.value = '';
+            });
+            
+            // Reset selects
+            const selects = ['addTypeSelect', 'articleSelect', 'genderSelect'];
+            selects.forEach(id => {
+                const select = byId(id);
+                if (select) select.selectedIndex = 0;
+            });
+            
+            // Show default form
+            showAddForm('vocab');
+        });
+    }
+    
+    // Export/Import/Clear functionality
+    const exportBtn = byId('exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportData);
+    }
+    
+    const importBtn = byId('importBtn');
+    const importFile = byId('importFile');
+    if (importBtn && importFile) {
+        importBtn.addEventListener('click', () => importFile.click());
+        importFile.addEventListener('change', importData);
+    }
+    
+    const clearBtn = byId('clearBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllData);
     }
     
     // Initialize
@@ -1055,9 +1178,9 @@ function getDirText() {
     return dir() === 'it-de' ? 'IT→DE' : 'DE→IT';
 }
 
-// List management (simplified)
+// List management with bulk actions
 function renderList() {
-    const tbody = document.querySelector('#cardTable tbody');
+    const tbody = byId('tableBody');
     if (!tbody) return;
     
     tbody.innerHTML = '';
@@ -1065,21 +1188,54 @@ function renderList() {
     state.items.forEach(item => {
         const row = document.createElement('tr');
         const successRate = item.attempts > 0 ? Math.round((item.correct / item.attempts) * 100) : 0;
+        const dueText = item.dueAt && item.dueAt > now() ? 
+            Math.ceil((item.dueAt - now()) / (1000 * 60 * 60 * 24)) + ' Tage' : 
+            'Fällig';
         
         row.innerHTML = `
+            <td>
+                <input type="checkbox" class="row-checkbox" data-id="${item.id}">
+            </td>
             <td><strong>${item.it}</strong></td>
             <td>${item.de}</td>
+            <td>${dueText}</td>
             <td>${item.streak || 0}</td>
             <td>${successRate}%</td>
+            <td>${item.suspended ? '⏸️ Pausiert' : '▶️ Aktiv'}</td>
             <td>
-                <button class="btn ghost btn-xs" onclick="toggleSuspend('${item.id}')">
+                <button class="btn ghost btn-xs suspend-btn" data-id="${item.id}">
                     ${item.suspended ? 'Aktivieren' : 'Pausieren'}
                 </button>
-                <button class="btn ghost btn-xs" onclick="deleteCard('${item.id}')">Löschen</button>
+                <button class="btn ghost btn-xs delete-btn" data-id="${item.id}">Löschen</button>
             </td>
         `;
+        
+        // Add event listeners for the buttons
+        const suspendBtn = row.querySelector('.suspend-btn');
+        const deleteBtn = row.querySelector('.delete-btn');
+        const checkbox = row.querySelector('.row-checkbox');
+        
+        if (suspendBtn) {
+            suspendBtn.addEventListener('click', () => toggleSuspend(item.id));
+        }
+        
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => deleteCard(item.id));
+        }
+        
+        if (checkbox) {
+            checkbox.addEventListener('change', updateBulkToolbar);
+        }
+        
         tbody.appendChild(row);
     });
+    
+    // Update counter
+    const countTxt = byId('countTxt');
+    if (countTxt) countTxt.textContent = state.items.length;
+    
+    updateBulkToolbar();
+    initializeBulkActions();
 }
 
 function toggleSuspend(id) {
@@ -1097,6 +1253,152 @@ function deleteCard(id) {
         save();
         renderList();
     }
+}
+
+// Bulk actions functionality
+function updateBulkToolbar() {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+    const bulkToolbar = byId('bulkToolbar');
+    const selectedCount = byId('selectedCount');
+    const selectAllCheckbox = byId('selectAllCheckbox');
+    
+    if (!bulkToolbar || !selectedCount || !selectAllCheckbox) return;
+    
+    const selectedItems = selectedCheckboxes.length;
+    const totalItems = checkboxes.length;
+    
+    // Show/hide toolbar
+    if (selectedItems > 0) {
+        bulkToolbar.style.display = 'flex';
+        selectedCount.textContent = selectedItems;
+    } else {
+        bulkToolbar.style.display = 'none';
+    }
+    
+    // Update select all checkbox
+    if (selectedItems === 0) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = false;
+    } else if (selectedItems === totalItems) {
+        selectAllCheckbox.indeterminate = false;
+        selectAllCheckbox.checked = true;
+    } else {
+        selectAllCheckbox.indeterminate = true;
+        selectAllCheckbox.checked = false;
+    }
+    
+    // Update row styling
+    document.querySelectorAll('tbody tr').forEach((row, index) => {
+        const checkbox = row.querySelector('.row-checkbox');
+        if (checkbox && checkbox.checked) {
+            row.classList.add('selected');
+        } else {
+            row.classList.remove('selected');
+        }
+    });
+}
+
+function getSelectedIds() {
+    const selectedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
+    return Array.from(selectedCheckboxes).map(cb => cb.getAttribute('data-id'));
+}
+
+function bulkDelete() {
+    console.log('bulkDelete called');
+    const selectedIds = getSelectedIds();
+    console.log('Selected IDs:', selectedIds);
+    
+    if (selectedIds.length === 0) {
+        alert('Keine Karten ausgewählt!');
+        return;
+    }
+    
+    if (confirm(`${selectedIds.length} Karten wirklich löschen?`)) {
+        console.log('User confirmed deletion');
+        state.items = state.items.filter(item => !selectedIds.includes(item.id));
+        save();
+        renderList();
+        alert('Karten wurden gelöscht!');
+    }
+}
+
+function bulkSuspend() {
+    const selectedIds = getSelectedIds();
+    if (selectedIds.length === 0) return;
+    
+    selectedIds.forEach(id => {
+        const card = cardById(id);
+        if (card) card.suspended = true;
+    });
+    save();
+    renderList();
+}
+
+function bulkActivate() {
+    const selectedIds = getSelectedIds();
+    if (selectedIds.length === 0) return;
+    
+    selectedIds.forEach(id => {
+        const card = cardById(id);
+        if (card) card.suspended = false;
+    });
+    save();
+    renderList();
+}
+
+function selectAll() {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    const selectAllCheckbox = byId('selectAllCheckbox');
+    
+    if (!selectAllCheckbox) return;
+    
+    const shouldCheck = selectAllCheckbox.checked;
+    checkboxes.forEach(cb => cb.checked = shouldCheck);
+    updateBulkToolbar();
+}
+
+function deselectAll() {
+    const checkboxes = document.querySelectorAll('.row-checkbox');
+    const selectAllCheckbox = byId('selectAllCheckbox');
+    
+    checkboxes.forEach(cb => cb.checked = false);
+    if (selectAllCheckbox) selectAllCheckbox.checked = false;
+    updateBulkToolbar();
+}
+
+// Initialize bulk actions (called after DOM elements are available)
+function initializeBulkActions() {
+    // Only initialize once
+    if (window.bulkActionsInitialized) return;
+    
+    const selectAllCheckbox = byId('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', selectAll);
+    }
+    
+    const bulkDeleteBtn = byId('bulkDeleteBtn');
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', bulkDelete);
+    }
+    
+    const bulkSuspendBtn = byId('bulkSuspendBtn');
+    if (bulkSuspendBtn) {
+        bulkSuspendBtn.addEventListener('click', bulkSuspend);
+    }
+    
+    const bulkActivateBtn = byId('bulkActivateBtn');
+    if (bulkActivateBtn) {
+        bulkActivateBtn.addEventListener('click', bulkActivate);
+    }
+    
+    const deselectAllBtn = byId('deselectAllBtn');
+    if (deselectAllBtn) {
+        deselectAllBtn.addEventListener('click', deselectAll);
+    }
+    
+    window.bulkActionsInitialized = true;
+    console.log('Bulk actions initialized successfully');
 }
 
 // Add new card (enhanced for all types)
@@ -1518,6 +1820,13 @@ window.skipFromConjugation = skipFromConjugation;
 window.skipFromPreposition = skipFromPreposition;
 window.skipFromArticle = skipFromArticle;
 window.skipFlashcard = skipFlashcard;
+window.deleteCard = deleteCard;
+window.toggleSuspend = toggleSuspend;
+window.bulkDelete = bulkDelete;
+window.bulkSuspend = bulkSuspend;
+window.bulkActivate = bulkActivate;
+window.selectAll = selectAll;
+window.deselectAll = deselectAll;
 
 // Test function to verify buttons work
 window.testButton = function() {

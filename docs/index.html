@@ -31,11 +31,12 @@
   <section class="card view center" id="view-learn">
     <!-- Vereinfachte Haupt-Controls: Nur Richtung ist wirklich wichtig für den User -->
     <div class="learn-controls">
-      <span class="chip">Lernrichtung</span>
-      <select id="dirSelect" class="input input-compact">
-        <option value="it-de">Italienisch → Deutsch</option>
-        <option value="de-it">Deutsch → Italienisch</option>
-      </select>
+      <label style="display:block; margin-bottom:8px; font-weight:600;">Lernrichtung
+        <select id="dirSelect" class="input" style="margin-top:6px;">
+          <option value="it-de">Italienisch → Deutsch</option>
+          <option value="de-it">Deutsch → Italienisch</option>
+        </select>
+      </label>
     </div>
     <!-- Lernmodi - Die einzige Auswahl die der User braucht -->
     <div class="mode-selector" style="margin: 20px 0;">
@@ -130,18 +131,18 @@
       <div id="flashcard" class="flashcard">
         <div id="flashcard-content" class="flashcard-content">
           <div id="flashcardWord" class="flashcard-word">ciao</div>
+          <div class="flashcard-hint-inside">Klicke auf die Karte zum Umdrehen • Dann bewerte dein Wissen</div>
         </div>
       </div>
       <div class="flashcard-actions" id="flashcardActions">
-        <div id="flashcardButtons" style="display:none; gap:12px; justify-content:center; margin-bottom:12px;">
+        <div id="flashcardButtons" style="display:none;">
           <button class="btn ghost clickfx btn-lg" id="againBtn" onclick="gradeFlashcard('again')" style="color: var(--bad);">Nicht gewusst</button>
           <button class="btn ghost clickfx btn-lg" id="goodBtn" onclick="gradeFlashcard('good')" style="color: var(--ok);">Gewusst</button>
         </div>
-        <div style="display: flex; justify-content: center; gap: 12px;">
+        <div class="next-skip-buttons">
           <button class="btn ghost clickfx" id="nextCardBtn" onclick="nextFlashcard()">Weiter</button>
           <button class="btn ghost clickfx" id="skipCardBtn" onclick="skipFlashcard()">Überspringen</button>
         </div>
-        <div class="flashcard-hint" style="margin-top: 8px;">Klicke auf die Karte zum Umdrehen • Dann bewerte dein Wissen</div>
       </div>
     </div>
 
@@ -163,8 +164,8 @@
   <!-- Add -->
   <section class="card view" id="view-add" hidden>
     <div style="margin-bottom:16px">
-      <label style="display:block;margin-bottom:8px">Kartentyp</label>
-      <select id="addTypeSelect" class="input input-compact">
+      <label>Kartentyp</label>
+      <select id="addTypeSelect" class="input">
         <option value="vocab">Vokabel</option>
         <option value="prep">Präposition</option>
         <option value="verb">Verb</option>
@@ -227,7 +228,7 @@
       </div>
       <div class="grid grid-2" style="margin-top:10px;">
         <label>Artikel
-          <select id="articleSelect" class="input input-compact">
+          <select id="articleSelect" class="input">
             <option value="">Artikel wählen</option>
             <option value="il">il (m. sing.)</option>
             <option value="la">la (f. sing.)</option>
@@ -239,7 +240,7 @@
           </select>
         </label>
         <label>Geschlecht
-          <select id="genderSelect" class="input input-compact">
+          <select id="genderSelect" class="input">
             <option value="">Geschlecht wählen</option>
             <option value="m">maskulin (m)</option>
             <option value="f">feminin (f)</option>
@@ -284,9 +285,36 @@
       </select>
     </div>
     <div class="muted" style="margin:8px 0;"><span id="countTxt">0</span> Treffer</div>
+    
+    <!-- Bulk Actions Toolbar -->
+    <div id="bulkToolbar" class="bulk-toolbar" style="display:none;">
+      <div class="selected-info">
+        <span id="selectedCount">0</span> Karten ausgewählt
+      </div>
+      <div class="bulk-actions">
+        <button id="bulkDeleteBtn" class="btn ghost btn-sm" style="color: var(--bad);">🗑️ Ausgewählte löschen</button>
+        <button id="bulkSuspendBtn" class="btn ghost btn-sm">⏸️ Pausieren</button>
+        <button id="bulkActivateBtn" class="btn ghost btn-sm">▶️ Aktivieren</button>
+        <button id="deselectAllBtn" class="btn ghost btn-sm">❌ Auswahl aufheben</button>
+      </div>
+    </div>
+    
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Italienisch</th><th>Deutsch</th><th>Fällig</th><th>Streak</th><th>Erfolg</th><th>Aktionen</th></tr></thead>
+        <thead>
+          <tr>
+            <th style="width:40px;">
+              <input type="checkbox" id="selectAllCheckbox" title="Alle auswählen/abwählen">
+            </th>
+            <th>Italienisch</th>
+            <th>Deutsch</th>
+            <th>Fällig</th>
+            <th>Streak</th>
+            <th>Erfolg</th>
+            <th>Status</th>
+            <th>Aktionen</th>
+          </tr>
+        </thead>
         <tbody id="tableBody"></tbody>
       </table>
     </div>
@@ -353,6 +381,14 @@
       <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Gesamt gelernt</div></div>
       <div class="stat"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Aktueller Streak</div></div>
       <div class="stat"><div class="stat-num" id="statLevel">1</div><div class="stat-label">Level</div></div>
+    </div>
+    
+    <h3 style="margin-top:24px;">Daten-Verwaltung</h3>
+    <div class="button-group">
+      <button id="exportBtn" class="btn ghost clickfx">📥 Daten exportieren</button>
+      <input type="file" id="importFile" accept=".json" style="display:none">
+      <button id="importBtn" class="btn ghost clickfx">📤 Daten importieren</button>
+      <button id="clearBtn" class="btn ghost clickfx" style="color: var(--bad);">🗑️ Alle Daten löschen</button>
     </div>
     
     <h4 style="margin-top:16px;">Kategorie-Performance</h4>
