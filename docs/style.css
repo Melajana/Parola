@@ -1,8 +1,9 @@
-/* srs11: spacing polish */
+/* SRS11: Streamlined Italian Learning App */
 :root{--bg:#fff;--text:#111;--surface:#fff;--border:#e6e6e6;--accent:#111;--ghost:#f2f2f2;--ok:#2e7d32;--bad:#c62828}
 @media (prefers-color-scheme:dark){:root{--bg:#0f0f10;--text:#f5f5f5;--surface:#151517;--border:#2a2a2d;--accent:#fff;--ghost:#222326;--ok:#81c784;--bad:#ef9a9a}}
 html,body{background:var(--bg);color:var(--text)}
-body{margin:0;font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+body{margin:0;font:16px/1.45 Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+h1{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;font-weight:600;margin:0}
 .container{max-width:1000px;margin:0 auto;padding:16px}
 .app-header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border)}
 .header-inner{display:flex;align-items:center;gap:12px;padding:12px 16px}
@@ -10,40 +11,108 @@ body{margin:0;font:16px/1.45 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helve
 .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.04);padding:24px}
 .grid{display:grid;gap:16px}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-2>*{min-width:0}@media(max-width:680px){.grid-2{grid-template-columns:1fr}}
 .muted{color:rgba(0,0,0,.55)}@media(prefers-color-scheme:dark){.muted{color:rgba(255,255,255,.6)}}
-.center{text-align:center}.word{font-size:32px;font-weight:800;font-family:Nunito,Inter}
-.btn{border:1px solid #0000;background:#fff;padding:12px 20px;border-radius:9999px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.08);font-family:Nunito,Inter;font-weight:800;font-size:13px;margin:4px;transition:transform .06s,box-shadow .06s}
-.btn.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
-.btn.ghost{background:var(--ghost);color:var(--text);border:1px solid var(--border)}
-.btn-xs{padding:6px 10px;font-size:12px;border-radius:9999px}
-.btn:active{transform:scale(.98)}
-.tabs{display:flex;gap:10px;margin:12px 0 16px;flex-wrap:wrap}.tabs .active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
-label{display:flex;flex-direction:column;gap:6px}.input,select,textarea{padding:10px 12px;border-radius:9999px;border:1px solid var(--border);background:var(--surface);color:var(--text)}.input-compact{padding:6px 10px;width:auto}
+.center{text-align:center}.word{font-size:32px;font-weight:600;font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+/* Button System - Unified Design */
+.btn{
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,.08);
+  font-family: Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  font-weight: 500;
+  font-size: 14px;
+  margin: 4px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  min-width: auto;
+}
+
+.btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,.12);
+}
+
+.btn:active{
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0,0,0,.1);
+}
+
+.btn.primary{
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.btn.ghost{
+  background: var(--ghost);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Button Sizes */
+.btn-sm{
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.btn-lg{
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.tabs{display:flex;gap:10px;margin:12px 0 16px;flex-wrap:wrap;justify-content:center}.tabs .active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+label{display:flex;flex-direction:column;gap:6px}.input,select,textarea{padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;font-size:14px}.input-compact{padding:6px 10px;width:auto}
 .speaker-icon{background:transparent;border:0;padding:0;margin:14px auto 0;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.speaker-icon img{width:36px;height:36px}@media(prefers-color-scheme:dark){.speaker-icon img{filter:invert(1)}}
-.learn-controls{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}.chip{display:inline-block;padding:4px 12px;border-radius:9999px;background:var(--ghost);border:1px solid var(--border);font-family:Nunito,Inter;font-weight:800}
-.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.learn-controls{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}.chip{display:inline-block;padding:4px 12px;border-radius:9999px;background:var(--ghost);border:1px solid var(--border);font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;font-weight:600}
+.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px;justify-content:center}
 .actions.wrap{gap:12px}
-.actions .btn{font-size:13px}
 /* Button groups for settings page */
-.button-group{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0}
-.button-group .btn{font-size:13px;min-width:auto}
-.list-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.list-controls .input{min-width:200px}
+.button-group{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0;justify-content:center}
+.list-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}.list-controls .input{min-width:200px}
 .table-wrap{border-radius:16px;overflow:hidden}
 table{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
-thead th{position:sticky;top:0;z-index:1;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(6px);text-align:left;font-weight:700;padding:14px 16px;border-bottom:1px solid var(--border)}
+thead th{position:sticky;top:0;z-index:1;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(6px);text-align:left;font-weight:600;padding:14px 16px;border-bottom:1px solid var(--border)}
 tbody td{padding:14px 16px;vertical-align:middle;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent)}
 tbody tr:nth-child(odd){background:color-mix(in srgb,var(--ghost) 55%,transparent)}
 tbody tr:hover{background:color-mix(in srgb,var(--ghost) 80%,transparent)}
 /* Due cell now flex to space text & button */
 td.due-cell{display:flex;gap:10px;align-items:center}
-td.success-cell{font-weight:700}.success-cell.ok{color:var(--ok)}.success-cell.mid{color:#b26a00}.success-cell.bad{color:var(--bad)}
+td.success-cell{font-weight:600}.success-cell.ok{color:var(--ok)}.success-cell.mid{color:#b26a00}.success-cell.bad{color:var(--bad)}
 /* Action buttons in table with uniform spacing */
 .td-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 /* Stats */
-.stats-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}.stat{background:var(--ghost);border:1px solid var(--border);border-radius:16px;padding:12px 16px;min-width:160px}.stat-num{font-size:24px;font-weight:800}.stat-label{color:rgba(0,0,0,.6)}@media(prefers-color-scheme:dark){.stat-label{color:rgba(255,255,255,.7)}}
+.stats-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}.stat{background:var(--ghost);border:1px solid var(--border);border-radius:16px;padding:12px 16px;min-width:160px}.stat-num{font-size:24px;font-weight:600}.stat-label{color:rgba(0,0,0,.6)}@media(prefers-color-scheme:dark){.stat-label{color:rgba(255,255,255,.7)}}
 .stats-chart{display:block;margin-top:12px;width:100%;max-width:600px}
 /* Inline edit */
 .due-edit{display:flex;gap:8px;align-items:center}
-.due-input{padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.due-input{padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;font-size:14px}
+
+/* Feedback styling */
+.type-feedback{
+  font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  font-size:14px;
+  font-weight:500;
+  padding:8px 12px;
+  border-radius:8px;
+  margin-top:8px;
+  text-align:center;
+}
+.type-feedback.ok{
+  color:var(--ok);
+  background:color-mix(in srgb, var(--ok) 10%, transparent);
+}
+.type-feedback.bad{
+  color:var(--bad);
+  background:color-mix(in srgb, var(--bad) 10%, transparent);
+}
 /* Erweiterte Lernmodi */
 /* Audio controls */
 .audio-controls {
@@ -115,7 +184,7 @@ td.success-cell{font-weight:700}.success-cell.ok{color:var(--ok)}.success-cell.m
   border-radius: 50%;
 }
 .conjugation-box,.preposition-box{margin-top:16px}
-.prep-options button{padding:8px 16px;margin:4px;font-size:14px}
+.prep-options button{padding:12px 20px;margin:4px;font-size:18px;font-weight:700}
 .prep-options button.selected{background:var(--accent);color:var(--bg)}
 .prep-options button.correct{background:var(--ok);color:white}
 .prep-options button.wrong{background:var(--bad);color:white}
@@ -132,7 +201,7 @@ td.success-cell{font-weight:700}.success-cell.ok{color:var(--ok)}.success-cell.m
 .badge-article{background:#9c27b0;color:white}
 /* Neue Lernmodi */
 .article-options{display:flex;gap:12px;justify-content:center;margin:16px 0}
-.article-options button{padding:12px 20px;font-size:18px;font-weight:700}
+.article-options button{padding:12px 20px;font-size:18px;font-weight:600}
 .article-options button.correct{background:var(--ok);color:white}
 .article-options button.wrong{background:var(--bad);color:white}
 .gaptext-box{margin-top:16px}
@@ -156,7 +225,7 @@ td.success-cell{font-weight:700}.success-cell.ok{color:var(--ok)}.success-cell.m
 @keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
 /* Audio Controls */
-.audio-controls{display:flex;gap:12px;align-items:center;margin:12px 0}
+.audio-controls{display:flex;gap:12px;align-items:center;margin:12px 0;justify-content:center}
 .speak-btn-inline{background:transparent;border:0;padding:4px;cursor:pointer;opacity:0.7;transition:opacity 0.2s}
 .speak-btn-inline:hover{opacity:1}
 .speak-btn-inline img{width:20px;height:20px}
@@ -167,21 +236,111 @@ td.success-cell{font-weight:700}.success-cell.ok{color:var(--ok)}.success-cell.m
 
 /* Quick Start Buttons */
 .quick-start-buttons{padding:12px;background:color-mix(in srgb,var(--ghost) 50%,transparent);border-radius:12px;margin:16px 0}
-.btn-sm{padding:8px 12px;font-size:13px;border-radius:8px}
-.quick-start-buttons .btn{min-width:auto}
-.quick-start-buttons .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px color-mix(in srgb,var(--text) 15%,transparent)}
 .level-text{font-size:12px;color:var(--muted);margin-top:4px}
 
-/* Flashcard Improvements */
+/* Flashcard Improvements - Vereinfacht ohne 3D-Animation */
 .flashcard-container{perspective:1000px;margin:20px auto;max-width:400px}
-.flashcard{width:100%;height:200px;position:relative;transform-style:preserve-3d;transition:transform 0.6s;cursor:pointer;margin:16px 0}
-.flashcard.flipped{transform:rotateY(180deg)}
-.flashcard-front,.flashcard-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:16px;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;box-sizing:border-box;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-.flashcard-back{transform:rotateY(180deg);background:color-mix(in srgb,var(--ok) 5%,var(--surface));border-color:var(--ok)}
-.flashcard-word{font-size:28px;font-weight:800;color:var(--text)}
-.flashcard-translation{font-size:24px;font-weight:600;color:var(--ok)}
+.flashcard{width:100%;height:200px;position:relative;cursor:pointer;margin:16px 0}
+.flashcard-content{width:100%;height:100%;border-radius:16px;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;box-sizing:border-box;box-shadow:0 4px 12px rgba(0,0,0,0.1);transition:background-color 0.3s ease}
+.flashcard:hover .flashcard-content{background:color-mix(in srgb,var(--accent) 3%,var(--surface))}
+.flashcard-word{font-size:28px;font-weight:600;color:var(--text)}
 .flashcard-hint{position:absolute;bottom:10px;right:15px;font-size:12px;color:var(--muted);opacity:0.7}
 .auto-flip-timer{width:100%;height:3px;background:var(--border);border-radius:2px;margin:10px 0;overflow:hidden}
 .auto-flip-progress{height:100%;background:var(--accent);border-radius:2px;transition:width 3s linear;width:0%}
-.flashcard-actions{margin-top:20px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.flashcard-actions .btn{min-width:100px}
+.flashcard-actions{margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;flex-direction:column;align-items:center}
+.flashcard-actions #flashcardButtons{display:flex;flex-direction:row}
+.flashcard-actions #nextCardBtn{align-self:center}
+
+/* Mode Button Colors - With Dark Mode Support */
+.mode-flashcards {
+  background: color-mix(in srgb, #e3f2fd 80%, transparent);
+  border-color: color-mix(in srgb, #2196f3 30%, transparent);
+  color: #1976d2;
+}
+
+.mode-flashcards.active {
+  background: #2196f3;
+  border-color: #2196f3;
+  color: white;
+}
+
+.mode-type {
+  background: color-mix(in srgb, #f3e5f5 80%, transparent);
+  border-color: color-mix(in srgb, #9c27b0 30%, transparent);
+  color: #7b1fa2;
+}
+
+.mode-type.active {
+  background: #9c27b0;
+  border-color: #9c27b0;
+  color: white;
+}
+
+.mode-conjugation {
+  background: color-mix(in srgb, #fff3e0 80%, transparent);
+  border-color: color-mix(in srgb, #ff9800 30%, transparent);
+  color: #f57c00;
+}
+
+.mode-conjugation.active {
+  background: #ff9800;
+  border-color: #ff9800;
+  color: white;
+}
+
+.mode-preposition {
+  background: color-mix(in srgb, #e8f5e8 80%, transparent);
+  border-color: color-mix(in srgb, #4caf50 30%, transparent);
+  color: #388e3c;
+}
+
+.mode-preposition.active {
+  background: #4caf50;
+  border-color: #4caf50;
+  color: white;
+}
+
+.mode-articles {
+  background: color-mix(in srgb, #ffebee 80%, transparent);
+  border-color: color-mix(in srgb, #f44336 30%, transparent);
+  color: #d32f2f;
+}
+
+.mode-articles.active {
+  background: #f44336;
+  border-color: #f44336;
+  color: white;
+}
+
+/* Dark Mode Adjustments for Mode Buttons */
+@media (prefers-color-scheme: dark) {
+  .mode-flashcards {
+    background: color-mix(in srgb, #1565c0 20%, var(--surface));
+    border-color: color-mix(in srgb, #42a5f5 40%, transparent);
+    color: #64b5f6;
+  }
+  
+  .mode-type {
+    background: color-mix(in srgb, #6a1b9a 20%, var(--surface));
+    border-color: color-mix(in srgb, #ab47bc 40%, transparent);
+    color: #ce93d8;
+  }
+  
+  .mode-conjugation {
+    background: color-mix(in srgb, #e65100 20%, var(--surface));
+    border-color: color-mix(in srgb, #ffa726 40%, transparent);
+    color: #ffb74d;
+  }
+  
+  .mode-preposition {
+    background: color-mix(in srgb, #2e7d32 20%, var(--surface));
+    border-color: color-mix(in srgb, #66bb6a 40%, transparent);
+    color: #81c784;
+  }
+  
+  .mode-articles {
+    background: color-mix(in srgb, #c62828 20%, var(--surface));
+    border-color: color-mix(in srgb, #ef5350 40%, transparent);
+    color: #ef9a9a;
+  }
+}

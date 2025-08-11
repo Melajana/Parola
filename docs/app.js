@@ -14,7 +14,6 @@ state.settings=Object.assign({
     sortBy:'default',
     autoSpeak:false,
     speechRate:0.8,
-    autoFlip:false,
     speakOnFlip:true,
     repeatAudio:false
 },state.settings||{});
@@ -113,7 +112,7 @@ function seed(){
         ],
         settings:{
             newPerSession:10,maxReviews:100,direction:'it-de',mode:'flashcards',
-            tolerance:20,sortBy:'default',autoSpeak:false,speechRate:0.8,autoFlip:false
+            tolerance:20,sortBy:'default',autoSpeak:false,speechRate:0.8
         },
         history:[],achievements:[],dailyGoal:20,streak:0
     };
@@ -299,6 +298,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Form type switching for Add tab
+    const addTypeSelect = byId('addTypeSelect');
+    if (addTypeSelect) {
+        addTypeSelect.addEventListener('change', () => {
+            const selectedType = addTypeSelect.value;
+            showAddForm(selectedType);
+        });
+    }
+    
     // Mode selection buttons
     const modeButtons = document.querySelectorAll('.mode-btn');
     console.log('Found mode buttons:', modeButtons.length);
@@ -369,6 +377,27 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
+    // Enter key support for type input
+    const typeInput = byId('typeInput');
+    if (typeInput) {
+        typeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Only proceed if input is not disabled (hasn't been checked yet)
+                if (typeInput.disabled) return;
+                
+                const input = typeInput.value.trim();
+                if (!input) return; // Don't check empty input
+                
+                const correct = dir() === 'it-de' ? cardById(currentId).de : cardById(currentId).it;
+                console.log('Enter pressed - checking type:', input, 'vs', correct);
+                checkType(input, correct);
+            }
+        });
+    }
+    
     // Conjugation checking buttons
     const conjCheckBtn = byId('conjCheckBtn');
     const conjRevealBtn = byId('conjRevealBtn');
@@ -386,6 +415,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 feedback.style.display = 'block';
             }
         };
+    }
+    
+    // Enter key support for conjugation input
+    const conjugationInput = byId('conjugationInput');
+    if (conjugationInput) {
+        conjugationInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Only proceed if input is not disabled (hasn't been checked yet)
+                if (conjugationInput.disabled) return;
+                
+                const input = conjugationInput.value.trim();
+                if (!input) return; // Don't check empty input
+                
+                console.log('Enter pressed - checking conjugation:', input);
+                checkConjugation();
+            }
+        });
     }
     
     // Gaptext checking buttons
@@ -414,7 +463,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Learning algorithm
 function updateLearn(){
+    console.log('updateLearn called, currentId:', currentId);
     const activeItems=state.items.filter(i=>!i.suspended);
+    console.log('Active items:', activeItems.length);
     if(!activeItems.length){
         learnWord.textContent='Keine aktiven Karten';
         learnMeta.textContent='Füge neue Wörter hinzu!';
@@ -441,12 +492,22 @@ function updateLearn(){
     }
     
     const due=filteredItems.filter(i=>(i.dueAt||0)<=now());
-    if(!due.length){
+    console.log('Due items:', due.length, 'of', filteredItems.length, 'filtered items');
+    console.log('Current time:', now(), 'First few due dates:', filteredItems.slice(0,3).map(i => ({id: i.id, dueAt: i.dueAt, isDue: (i.dueAt||0)<=now()})));
+    
+    // If no due cards, allow practice with any card for nextFlashcard
+    let cardsToUse = due;
+    if(!due.length && window.lastClickWasNext) {
+        console.log('No due cards, but allowing practice');
+        cardsToUse = filteredItems; // Allow practice with any card
+        window.lastClickWasNext = false;
+    }
+    
+    if(!cardsToUse.length){
         const nextDue=filteredItems.reduce((min,i)=>!min||(i.dueAt||0)<(min.dueAt||0)?i:min,null);
         if(nextDue?.dueAt){
-            const waitTime=Math.ceil(((nextDue.dueAt||0)-now())/(1000*60));
             learnWord.textContent='Gut gemacht! 🎉';
-            learnMeta.textContent=`Nächste Wiederholung in ${waitTime} Min.`;
+            learnMeta.textContent='Alle Karten für heute gelernt! Drücke "Weiter" zum Üben';
         } else {
             learnWord.textContent='Alle Karten gelernt!';
             learnMeta.textContent='Füge neue Inhalte hinzu';
@@ -454,12 +515,54 @@ function updateLearn(){
         return;
     }
     
-    if(!currentId||!due.find(i=>i.id===currentId)){
-        const sorted=due.slice().sort((a,b)=>(a.dueAt||0)-(b.dueAt||0));
-        currentId=sorted[0].id;
+    if(!currentId||!cardsToUse.find(i=>i.id===currentId)){
+        // Prioritize cards based on difficulty and skip count
+        const sorted=cardsToUse.slice().sort((a,b)=>{
+            // Higher priority for frequently skipped cards
+            const aSkipPriority = (a.skippedCount || 0) * 10;
+            const bSkipPriority = (b.skippedCount || 0) * 10;
+            
+            // Higher priority for low success rate
+            const aSuccessRate = a.attempts ? (a.correct || 0) / a.attempts : 1;
+            const bSuccessRate = b.attempts ? (b.correct || 0) / b.attempts : 1;
+            const aFailurePriority = (1 - aSuccessRate) * 5;
+            const bFailurePriority = (1 - bSuccessRate) * 5;
+            
+            // Combined priority score (higher = more priority)
+            const aPriority = aSkipPriority + aFailurePriority;
+            const bPriority = bSkipPriority + bFailurePriority;
+            
+            // If priorities are similar, sort by due date
+            if(Math.abs(aPriority - bPriority) < 0.1) {
+                return (a.dueAt||0)-(b.dueAt||0);
+            }
+            
+            return bPriority - aPriority; // Higher priority first
+        });
+        
+        // If this was triggered by "Weiter" button and we have multiple cards,
+        // try to pick a different card than the last one
+        if(window.lastClickWasNext && sorted.length > 1) {
+            // Find a different card than the last one shown
+            const lastId = window.lastCardId || currentId;
+            const differentCards = sorted.filter(c => c.id !== lastId);
+            if(differentCards.length > 0) {
+                // Pick the highest priority different card
+                currentId = differentCards[0].id;
+                console.log('Selected different card for practice:', currentId, 'avoiding last card:', lastId);
+            } else {
+                currentId = sorted[0].id;
+                console.log('Only one card available, selected:', currentId);
+            }
+        } else {
+            // Pick the highest priority card
+            currentId = sorted[0].id;
+            console.log('Normal card selection:', currentId, 'from', cardsToUse.length, 'cards to use');
+        }
     }
     
     const card=cardById(currentId);
+    console.log('Card found:', card ? card.it : 'No card');
     if(!card) return;
     
     // Mode-specific display
@@ -474,8 +577,6 @@ function updateLearn(){
         setupPrepositionMode(card);
     } else if (currentMode === 'articles' && card.type === 'article') {
         setupArticleMode(card);
-    } else if (currentMode === 'gaptext') {
-        setupGaptextMode(card);
     } else {
         // Fallback to flashcards
         setupFlashcardMode(card);
@@ -492,40 +593,30 @@ function setupFlashcardMode(card) {
     const flashcardContainer = document.getElementById('flashcardContainer');
     flashcardContainer.style.display = 'block';
     
-    // Set up flashcard content
+    // Set up flashcard content - einfach ohne Animation
     const flashcardWord = document.getElementById('flashcardWord');
-    const flashcardTranslation = document.getElementById('flashcardTranslation');
     const flashcard = document.getElementById('flashcard');
+    const flashcardActions = document.getElementById('flashcardActions');
     
+    // Einfach die Frage anzeigen
     flashcardWord.textContent = q;
-    flashcardTranslation.textContent = a;
+    flashcardWord.style.color = 'var(--text)'; // Normale Farbe für Frage
     
-    // Reset flashcard to front
-    flashcard.classList.remove('flipped');
+    // Status verfolgen
+    let isShowingAnswer = false;
     
-    learnMeta.textContent = `${card.type === 'verb' ? '⚡' : card.type === 'prep' ? '🔗' : card.type === 'article' ? '🎯' : '📚'} Karteikarten - ${getDirText()}`;
+    // Buttons initial zurücksetzen
+    const flashcardButtons = document.getElementById('flashcardButtons');
+    const nextCardBtn = document.getElementById('nextCardBtn');
+    if (flashcardButtons) flashcardButtons.style.display = 'none';
+    if (nextCardBtn) nextCardBtn.style.display = 'block';
     
-    // Set up audio button in flashcard (find the audio button within flashcard container)
-    const audioBtn = flashcardContainer.querySelector('.audio-btn');
-    if (audioBtn) {
-        audioBtn.onclick = async () => {
-            try {
-                const isItalian = dir() === 'it-de';
-                const textToSpeak = flashcard.classList.contains('flipped') ? a : q;
-                if (isItalian && !flashcard.classList.contains('flipped')) {
-                    await audioManager.speakItalian(textToSpeak);
-                } else if (!isItalian && !flashcard.classList.contains('flipped')) {
-                    await audioManager.speakGerman(textToSpeak);
-                } else if (isItalian && flashcard.classList.contains('flipped')) {
-                    await audioManager.speakGerman(textToSpeak);
-                } else {
-                    await audioManager.speakItalian(textToSpeak);
-                }
-            } catch (error) {
-                console.log('Audio playback failed:', error);
-            }
-        };
-    }
+    // Show actions
+    if (flashcardActions) flashcardActions.style.display = 'block';
+    
+    // Hide the word area since we're using flashcards
+    learnWord.textContent = '';
+    learnMeta.textContent = `${card.type === 'verb' ? '⚡' : card.type === 'prep' ? '🔗' : card.type === 'article' ? '🎯' : '📚'} Karteikarten - ${getDirText()} - Einfacher Wechsel`;
     
     // Auto-speak if enabled
     if (state.settings.autoSpeak) {
@@ -543,28 +634,56 @@ function setupFlashcardMode(card) {
         }, 300);
     }
     
-    // Auto-flip after 3 seconds, then auto-advance
-    let autoFlipped = false;
-    setTimeout(() => {
-        flashcard.classList.add('flipped');
-        autoFlipped = true;
-        
-        // Auto-advance after showing answer
-        setTimeout(() => {
-            const grade = Math.random() > 0.3 ? 'good' : 'again'; // Simple auto-grading
-            gradeCard(grade);
-        }, 2500);
-    }, 3000);
+    // Setup flashcard mode with manual control only
+    // because it interferes with the manual click-based grading system
     
-    // Allow manual flip on click
-    const clickHandler = () => {
-        if (!autoFlipped) {
-            flashcard.classList.add('flipped');
-            autoFlipped = true;
+    // Einfacher Klick-Handler: Text wechseln statt drehen
+    const clickHandler = async () => {
+        const flashcardButtons = document.getElementById('flashcardButtons');
+        const nextCardBtn = document.getElementById('nextCardBtn');
+        
+        if (!isShowingAnswer) {
+            flashcardWord.textContent = a;
+            flashcardWord.style.color = 'var(--ok)'; // Grün für Antwort
+            isShowingAnswer = true;
+            
+            // Audio beim Umdrehen abspielen (speakOnFlip)
+            if (state.settings.speakOnFlip) {
+                try {
+                    const isItalian = dir() === 'it-de';
+                    if (isItalian) {
+                        await audioManager.speakGerman(a); // Antwort ist deutsch
+                    } else {
+                        await audioManager.speakItalian(a); // Antwort ist italienisch
+                    }
+                } catch (error) {
+                    console.log('Speak on flip failed:', error);
+                }
+            }
+            
+            // Zeige Bewertungsbuttons, verstecke Weiter-Button
+            if (flashcardButtons) {
+                flashcardButtons.style.display = 'flex';
+            }
+            if (nextCardBtn) {
+                nextCardBtn.style.display = 'none';
+            }
+        } else {
+            flashcardWord.textContent = q;
+            flashcardWord.style.color = 'var(--text)'; // Normal für Frage
+            isShowingAnswer = false;
+            
+            // Verstecke Bewertungsbuttons, zeige Weiter-Button
+            if (flashcardButtons) {
+                flashcardButtons.style.display = 'none';
+            }
+            if (nextCardBtn) {
+                nextCardBtn.style.display = 'block';
+            }
         }
     };
     
-    flashcard.removeEventListener('click', clickHandler); // Remove old handler
+    flashcard.removeEventListener('click', clickHandler);
     flashcard.addEventListener('click', clickHandler);
     flashcard.style.cursor = 'pointer';
 }
@@ -637,7 +756,40 @@ function checkConjugation() {
         feedback.style.display = 'block';
     }
     
-    setTimeout(() => gradeCard(isCorrect ? 'good' : 'again'), 1500);
+    // Show continue button instead of auto-advancing
+    const continueBtn = byId('conjContinueBtn');
+    if (continueBtn) {
+        continueBtn.style.display = 'block';
+        continueBtn.textContent = isCorrect ? 'Weiter' : 'Verstanden, weiter';
+        continueBtn.focus();
+    }
+    
+    // Disable input field
+    const conjInput = byId('conjugationInput');
+    if (conjInput) conjInput.disabled = true;
+    
+    // Store result
+    window.pendingConjResult = isCorrect ? 'good' : 'again';
+}
+
+function continueFromConjugation() {
+    if (window.pendingConjResult) {
+        gradeCard(window.pendingConjResult);
+        window.pendingConjResult = null;
+    }
+    
+    // Reset UI
+    const feedback = byId('conjFeedback');
+    if (feedback) feedback.style.display = 'none';
+    
+    const continueBtn = byId('conjContinueBtn');
+    if (continueBtn) continueBtn.style.display = 'none';
+    
+    const conjInput = byId('conjugationInput');
+    if (conjInput) {
+        conjInput.disabled = false;
+        conjInput.value = '';
+    }
 }
 
 function setupPrepositionMode(card) {
@@ -658,6 +810,24 @@ function setupPrepositionMode(card) {
     
     const contextEl = byId('prepositionContext');
     if (contextEl) contextEl.textContent = context;
+    
+    // Generate preposition options
+    const prepOptions = byId('prepOptions');
+    if (prepOptions) {
+        // Get all available prepositions
+        const allPrepositions = ['a', 'di', 'da', 'in', 'con', 'per', 'su', 'tra', 'fra'];
+        const correctPreposition = card.it;
+        
+        // Always include correct answer and 2-3 distractors
+        let options = [correctPreposition];
+        const distractors = allPrepositions.filter(p => p !== correctPreposition);
+        options.push(...shuffle(distractors).slice(0, 2));
+        options = shuffle(options);
+        
+        prepOptions.innerHTML = options.map(prep => 
+            `<button class="btn ghost clickfx" onclick="checkPreposition('${prep}', '${correctPreposition}')">${prep}</button>`
+        ).join('');
+    }
 }
 
 function setupArticleMode(card) {
@@ -674,87 +844,35 @@ function setupArticleMode(card) {
     
     const wordEl = byId('articleWord');
     if (wordEl) wordEl.textContent = card.extra.word;
-}
-
-function setupGaptextMode(card) {
-    hideAllModeBoxes();
-    const gaptextBox = byId('gaptextBox');
-    if (gaptextBox) gaptextBox.style.display = 'block';
     
-    learnWord.textContent = '';
-    learnMeta.textContent = '📝 Lückentext - Ergänze den Satz';
-    
-    // Einfacherer Lückentext - basierend auf Lernrichtung
-    let sentence = '';
-    let answer = '';
-    
-    if (dir() === 'it-de') {
-        // Italienisch → Deutsch: Italienischer Satz mit deutscher Lücke
-        sentence = `"${card.it}" bedeutet auf Deutsch: _____`;
-        answer = card.de;
-    } else {
-        // Deutsch → Italienisch: Deutscher Satz mit italienischer Lücke
-        sentence = `"${card.de}" heißt auf Italienisch: _____`;
-        answer = card.it;
+    // Generate article options
+    const articleOptions = byId('articleOptions');
+    if (articleOptions) {
+        const allArticles = ['il', 'la', 'lo', 'l\'', 'i', 'le', 'gli'];
+        const correctArticle = card.extra.article;
+        
+        // Always include correct answer and 2-3 distractors
+        let options = [correctArticle];
+        const distractors = allArticles.filter(a => a !== correctArticle);
+        options.push(...shuffle(distractors).slice(0, 2));
+        options = shuffle(options);
+        
+        articleOptions.innerHTML = options.map(article => 
+            `<button class="btn ghost clickfx" onclick="checkArticle('${article}', '${correctArticle}')">${article}</button>`
+        ).join('');
     }
-    
-    // Für spezielle Kartentypen anpassen
-    if (card.type === 'verb' && card.extra?.conjugations?.presente) {
-        if (dir() === 'it-de') {
-            sentence = `Konjugiere "io ${card.extra.infinitive}": _____`;
-            answer = card.extra.conjugations.presente.io;
-        } else {
-            sentence = `Was ist der Infinitiv von "io ${card.extra.conjugations.presente.io}": _____`;
-            answer = card.extra.infinitive;
-        }
-    } else if (card.type === 'prep' && card.extra?.contexts) {
-        const context = card.extra.contexts[0];
-        sentence = context.replace('___', '_____');
-        answer = card.it;
-    } else if (card.type === 'article' && card.extra?.word) {
-        sentence = `Der richtige Artikel für "${card.extra.word}" ist: _____`;
-        answer = card.extra.article;
-    }
-    
-    currentGaptext = { sentence, answer };
-    
-    const sentenceEl = byId('gaptextSentence');
-    if (sentenceEl) sentenceEl.textContent = sentence;
-    
-    const gaptextInput = byId('gaptextInput');
-    if (gaptextInput) {
-        gaptextInput.value = '';
-        gaptextInput.focus();
-        gaptextInput.onkeydown = (e) => {
-            if (e.key === 'Enter') {
-                checkGaptext();
-            }
-        };
-    }
-}
-
-function checkGaptext() {
-    if (!currentGaptext) return;
-    
-    const input = byId('gaptextInput')?.value.trim();
-    const isCorrect = isClose(input, currentGaptext.answer);
-    
-    const feedback = byId('gaptextFeedback');
-    if (feedback) {
-        feedback.textContent = isCorrect ? '✓ Richtig!' : `✗ Richtig wäre: ${currentGaptext.answer}`;
-        feedback.className = `type-feedback ${isCorrect ? 'ok' : 'bad'}`;
-        feedback.style.display = 'block';
-    }
-    
-    setTimeout(() => gradeCard(isCorrect ? 'good' : 'again'), 1500);
 }
 
 function hideAllModeBoxes() {
-    const boxes = ['typeBox', 'conjugationBox', 'prepositionBox', 'articleBox', 'gaptextBox', 'flashcardContainer'];
+    const boxes = ['typeBox', 'conjugationBox', 'prepositionBox', 'articleBox', 'flashcardContainer'];
     boxes.forEach(boxId => {
         const box = byId(boxId);
         if (box) box.style.display = 'none';
     });
+    
+    // Also hide flashcard actions
+    const flashcardActions = byId('flashcardActions');
+    if (flashcardActions) flashcardActions.style.display = 'none';
     
     // Reset word display
     if (learnWord) {
@@ -765,6 +883,81 @@ function hideAllModeBoxes() {
 }
 
 // Answer checking functions
+function checkArticle(selected, correct) {
+    const isCorrect = selected === correct;
+    lastCorrect = isCorrect;
+    
+    const feedback = byId('articleFeedback');
+    if (feedback) {
+        feedback.textContent = isCorrect ? '✓ Richtig!' : `✗ Richtig wäre: ${correct}`;
+        feedback.className = `type-feedback ${isCorrect ? 'ok' : 'bad'}`;
+        feedback.style.display = 'block';
+    }
+    
+    // Show continue button and disable article buttons
+    const continueBtn = byId('articleContinueBtn');
+    if (continueBtn) {
+        continueBtn.style.display = 'block';
+        continueBtn.textContent = isCorrect ? 'Weiter' : 'Verstanden, weiter';
+        continueBtn.focus();
+    }
+    
+    // Disable all article option buttons
+    const articleOptions = byId('articleOptions');
+    if (articleOptions) {
+        const buttons = articleOptions.querySelectorAll('button');
+        buttons.forEach(btn => btn.disabled = true);
+    }
+    
+    // Store result for continue function
+    window.pendingArticleResult = isCorrect ? 'good' : 'again';
+}
+
+function checkPreposition(selected, correct) {
+    const isCorrect = selected === correct;
+    lastCorrect = isCorrect;
+    
+    const feedback = byId('prepFeedback');
+    if (feedback) {
+        feedback.textContent = isCorrect ? '✓ Richtig!' : `✗ Richtig wäre: ${correct}`;
+        feedback.className = `type-feedback ${isCorrect ? 'ok' : 'bad'}`;
+        feedback.style.display = 'block';
+    }
+    
+    // Show continue button and disable preposition buttons
+    const continueBtn = byId('prepContinueBtn');
+    if (continueBtn) {
+        continueBtn.style.display = 'block';
+        continueBtn.textContent = isCorrect ? 'Weiter' : 'Verstanden, weiter';
+        continueBtn.focus();
+    }
+    
+    // Disable all preposition buttons
+    const prepButtons = document.querySelectorAll('#prepositionOptions button');
+    prepButtons.forEach(btn => btn.disabled = true);
+    
+    // Store result
+    window.pendingPrepResult = isCorrect ? 'good' : 'again';
+}
+
+function continueFromPreposition() {
+    if (window.pendingPrepResult) {
+        gradeCard(window.pendingPrepResult);
+        window.pendingPrepResult = null;
+    }
+    
+    // Reset UI
+    const feedback = byId('prepFeedback');
+    if (feedback) feedback.style.display = 'none';
+    
+    const continueBtn = byId('prepContinueBtn');
+    if (continueBtn) continueBtn.style.display = 'none';
+    
+    // Re-enable preposition buttons (will be reset when new question loads)
+    const prepButtons = document.querySelectorAll('#prepositionOptions button');
+    prepButtons.forEach(btn => btn.disabled = false);
+}
+
 function checkType(input, correct) {
     const isCorrect = isClose(input, correct);
     lastCorrect = isCorrect;
@@ -776,7 +969,43 @@ function checkType(input, correct) {
         feedback.style.display = 'block';
     }
     
-    setTimeout(() => gradeCard(isCorrect ? 'good' : 'again'), 1500);
+    // Show continue button instead of auto-advancing
+    const continueBtn = byId('typeContinueBtn');
+    if (continueBtn) {
+        continueBtn.style.display = 'block';
+        continueBtn.textContent = isCorrect ? 'Weiter' : 'Verstanden, weiter';
+        continueBtn.focus();
+    }
+    
+    // Disable input field to prevent further typing
+    const typeInput = byId('typeInput');
+    if (typeInput) {
+        typeInput.disabled = true;
+    }
+    
+    // Store the result for when user clicks continue
+    window.pendingTypeResult = isCorrect ? 'good' : 'again';
+}
+
+function continueFromType() {
+    // Process the stored result
+    if (window.pendingTypeResult) {
+        gradeCard(window.pendingTypeResult);
+        window.pendingTypeResult = null;
+    }
+    
+    // Reset UI elements
+    const feedback = byId('typeFeedback');
+    if (feedback) feedback.style.display = 'none';
+    
+    const continueBtn = byId('typeContinueBtn');
+    if (continueBtn) continueBtn.style.display = 'none';
+    
+    const typeInput = byId('typeInput');
+    if (typeInput) {
+        typeInput.disabled = false;
+        typeInput.value = '';
+    }
 }
 
 // Grading system
@@ -870,8 +1099,21 @@ function deleteCard(id) {
     }
 }
 
-// Add new card (simplified)
+// Add new card (enhanced for all types)
 function addCard() {
+    const typeSelect = byId('addTypeSelect');
+    const type = typeSelect?.value || 'vocab';
+    
+    if (type === 'article') {
+        addArticleCard();
+        return;
+    }
+    
+    if (type === 'prep') {
+        addPrepositionCard();
+        return;
+    }
+    
     const itInput = byId('itInput');
     const deInput = byId('deInput');
     const notesInput = byId('notesInput');
@@ -886,7 +1128,7 @@ function addCard() {
         it: itInput.value.trim(),
         de: deInput.value.trim(),
         notes: notesInput?.value?.trim() || '',
-        type: 'vocab',
+        type: type,
         category: 'custom',
         createdAt: now(),
         dueAt: now(),
@@ -908,11 +1150,374 @@ function addCard() {
     alert('Karte hinzugefügt!');
 }
 
+// Add article card specifically
+function addArticleCard() {
+    const wordInput = byId('articleWord');
+    const translationInput = byId('articleTranslation');
+    const articleSelect = byId('articleSelect');
+    const genderSelect = byId('genderSelect');
+    const notesInput = byId('articleNotes');
+    
+    if (!wordInput?.value.trim() || !translationInput?.value.trim() || !articleSelect?.value || !genderSelect?.value) {
+        alert('Bitte füllen Sie alle Pflichtfelder aus!');
+        return;
+    }
+    
+    const newCard = {
+        id: uid(),
+        it: wordInput.value.trim(),
+        de: translationInput.value.trim(),
+        notes: notesInput?.value?.trim() || '',
+        type: 'article',
+        category: 'custom',
+        extra: {
+            article: articleSelect.value,
+            gender: genderSelect.value,
+            word: wordInput.value.trim()
+        },
+        createdAt: now(),
+        dueAt: now(),
+        intervalIndex: 0,
+        streak: 0,
+        suspended: false,
+        attempts: 0,
+        correct: 0
+    };
+    
+    state.items.push(newCard);
+    save();
+    
+    // Clear inputs
+    wordInput.value = '';
+    translationInput.value = '';
+    articleSelect.value = '';
+    genderSelect.value = '';
+    if (notesInput) notesInput.value = '';
+    
+    alert('Artikel hinzugefügt!');
+}
+
+// Add preposition card specifically  
+function addPrepositionCard() {
+    const wordInput = byId('prepWord');
+    const meaningInput = byId('prepMeaning');
+    const descriptionInput = byId('prepDescription');
+    const context1Input = byId('prepContext1');
+    const context2Input = byId('prepContext2');
+    const context3Input = byId('prepContext3');
+    
+    if (!wordInput?.value.trim() || !meaningInput?.value.trim() || !context1Input?.value.trim() || !context2Input?.value.trim()) {
+        alert('Bitte füllen Sie mindestens Präposition, Bedeutung und 2 Kontextsätze aus!');
+        return;
+    }
+    
+    const contexts = [
+        context1Input.value.trim(),
+        context2Input.value.trim()
+    ];
+    
+    if (context3Input?.value.trim()) {
+        contexts.push(context3Input.value.trim());
+    }
+    
+    const newCard = {
+        id: uid(),
+        it: wordInput.value.trim(),
+        de: meaningInput.value.trim(),
+        notes: descriptionInput?.value?.trim() || '',
+        type: 'prep',
+        category: 'custom',
+        extra: {
+            contexts: contexts
+        },
+        createdAt: now(),
+        dueAt: now(),
+        intervalIndex: 0,
+        streak: 0,
+        suspended: false,
+        attempts: 0,
+        correct: 0
+    };
+    
+    state.items.push(newCard);
+    save();
+    
+    // Clear inputs
+    wordInput.value = '';
+    meaningInput.value = '';
+    if (descriptionInput) descriptionInput.value = '';
+    context1Input.value = '';
+    context2Input.value = '';
+    if (context3Input) context3Input.value = '';
+    
+    alert('Präposition hinzugefügt!');
+}
+
+// Show appropriate form based on card type
+function showAddForm(type) {
+    const forms = ['basicForm', 'prepForm', 'verbForm', 'articleForm'];
+    forms.forEach(formId => {
+        const form = byId(formId);
+        if (form) form.style.display = 'none';
+    });
+    
+    if (type === 'prep') {
+        const prepForm = byId('prepForm');
+        if (prepForm) prepForm.style.display = 'block';
+    } else if (type === 'verb') {
+        const verbForm = byId('verbForm');
+        if (verbForm) verbForm.style.display = 'block';
+    } else if (type === 'article') {
+        const articleForm = byId('articleForm');
+        if (articleForm) articleForm.style.display = 'block';
+    } else {
+        const basicForm = byId('basicForm');
+        if (basicForm) basicForm.style.display = 'block';
+    }
+}
+
+// Stop learning function
+function stopLearning() {
+    // Hide all mode boxes and reset to selection screen
+    hideAllModeBoxes();
+    
+    // Reset learn display
+    learnWord.textContent = '—';
+    learnMeta.textContent = 'Wähle einen Lernmodus';
+    
+    // Reset all active mode buttons
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    modeButtons.forEach(btn => btn.classList.remove('active'));
+    
+    console.log('Learning stopped by user');
+}
+
+// Next flashcard function
+function nextFlashcard() {
+    // Einfach zur nächsten Karte ohne Bewertung (für Überspringen)
+    console.log('nextFlashcard called, currentId before:', currentId);
+    window.lastClickWasNext = true; // Flag to allow practice with any card
+    window.lastCardId = currentId; // Remember current card to avoid repeating it
+    currentId = null; // Reset current card to get a new one
+    console.log('currentId after reset:', currentId, 'last card was:', window.lastCardId);
+    updateLearn();
+}
+
+// Grade flashcard function  
+function gradeFlashcard(grade) {
+    // Schwierige Wörter wiederholen (repeatAudio) - Audio bei "again" nochmals abspielen
+    if (grade === 'again' && state.settings.repeatAudio && currentId) {
+        const card = cardById(currentId);
+        if (card) {
+            setTimeout(async () => {
+                try {
+                    const currentText = document.getElementById('flashcardWord').textContent;
+                    const isItalian = dir() === 'it-de';
+                    const isShowingAnswer = document.getElementById('flashcardWord').style.color === 'var(--ok)';
+                    
+                    if (isShowingAnswer) {
+                        // Antwort wird gerade gezeigt
+                        if (isItalian) {
+                            await audioManager.speakGerman(currentText);
+                        } else {
+                            await audioManager.speakItalian(currentText);
+                        }
+                    } else {
+                        // Frage wird gerade gezeigt
+                        if (isItalian) {
+                            await audioManager.speakItalian(currentText);
+                        } else {
+                            await audioManager.speakGerman(currentText);
+                        }
+                    }
+                } catch (error) {
+                    console.log('Repeat audio failed:', error);
+                }
+            }, 200);
+        }
+    }
+    
+    // Bewerte die aktuelle Karte und gehe zur nächsten
+    gradeCard(grade);
+}
+
+// Show appropriate form based on card type
+function showAddForm(type) {
+    const basicForm = byId('basicForm');
+    const verbForm = byId('verbForm');
+    const articleForm = byId('articleForm');
+    
+    // Hide all forms first
+    if (basicForm) basicForm.style.display = 'none';
+    if (verbForm) verbForm.style.display = 'none';
+    if (articleForm) articleForm.style.display = 'none';
+    
+    // Show appropriate form
+    if (type === 'article' && articleForm) {
+        articleForm.style.display = 'block';
+    } else if (type === 'verb' && verbForm) {
+        verbForm.style.display = 'block';
+    } else if (basicForm) {
+        basicForm.style.display = 'block';
+    }
+}
+
+// Skip functions for different modes
+function skipFromType() {
+    if (currentId) {
+        // Mark card as skipped - it will get a shorter interval and be seen more often
+        const card = cardById(currentId);
+        if (card) {
+            // Add skip marker to track this behavior
+            card.skippedCount = (card.skippedCount || 0) + 1;
+            card.lastSkipped = now();
+            
+            // Apply penalty: reset to short interval
+            card.intervalIndex = 0;
+            card.dueAt = now() + (5 * 60 * 1000); // 5 minutes
+            
+            save();
+            console.log('Card skipped:', card.it || card.de, 'skip count:', card.skippedCount);
+        }
+    }
+    
+    // Reset UI and move to next card
+    const feedback = byId('typeFeedback');
+    if (feedback) feedback.style.display = 'none';
+    
+    const continueBtn = byId('typeContinueBtn');
+    if (continueBtn) continueBtn.style.display = 'none';
+    
+    const typeInput = byId('typeInput');
+    if (typeInput) {
+        typeInput.disabled = false;
+        typeInput.value = '';
+    }
+    
+    updateLearn();
+}
+
+function skipFromConjugation() {
+    if (currentId) {
+        const card = cardById(currentId);
+        if (card) {
+            card.skippedCount = (card.skippedCount || 0) + 1;
+            card.lastSkipped = now();
+            card.intervalIndex = 0;
+            card.dueAt = now() + (5 * 60 * 1000);
+            save();
+            console.log('Verb skipped:', card.it || card.de, 'skip count:', card.skippedCount);
+        }
+    }
+    
+    // Reset UI
+    const feedback = byId('conjFeedback');
+    if (feedback) feedback.style.display = 'none';
+    
+    const continueBtn = byId('conjContinueBtn');
+    if (continueBtn) continueBtn.style.display = 'none';
+    
+    const conjInput = byId('conjugationInput');
+    if (conjInput) {
+        conjInput.disabled = false;
+        conjInput.value = '';
+    }
+    
+    updateLearn();
+}
+
+function skipFromPreposition() {
+    if (currentId) {
+        const card = cardById(currentId);
+        if (card) {
+            card.skippedCount = (card.skippedCount || 0) + 1;
+            card.lastSkipped = now();
+            card.intervalIndex = 0;
+            card.dueAt = now() + (5 * 60 * 1000);
+            save();
+            console.log('Preposition skipped:', card.it || card.de, 'skip count:', card.skippedCount);
+        }
+    }
+    
+    updateLearn();
+}
+
+function continueFromArticle() {
+    if (window.pendingArticleResult) {
+        gradeCard(window.pendingArticleResult);
+        window.pendingArticleResult = null;
+    }
+    
+    // Reset UI
+    const feedback = byId('articleFeedback');
+    if (feedback) feedback.style.display = 'none';
+    
+    const continueBtn = byId('articleContinueBtn');
+    if (continueBtn) continueBtn.style.display = 'none';
+    
+    // Re-enable article buttons for next card
+    const articleOptions = byId('articleOptions');
+    if (articleOptions) {
+        const buttons = articleOptions.querySelectorAll('button');
+        buttons.forEach(btn => btn.disabled = false);
+    }
+    
+    updateLearn();
+}
+
+function skipFromArticle() {
+    if (currentId) {
+        const card = cardById(currentId);
+        if (card) {
+            card.skippedCount = (card.skippedCount || 0) + 1;
+            card.lastSkipped = now();
+            card.intervalIndex = 0;
+            card.dueAt = now() + (5 * 60 * 1000);
+            save();
+            console.log('Article skipped:', card.it || card.de, 'skip count:', card.skippedCount);
+        }
+    }
+    
+    updateLearn();
+}
+
+function skipFlashcard() {
+    if (currentId) {
+        const card = cardById(currentId);
+        if (card) {
+            card.skippedCount = (card.skippedCount || 0) + 1;
+            card.lastSkipped = now();
+            card.intervalIndex = 0;
+            card.dueAt = now() + (5 * 60 * 1000);
+            save();
+            console.log('Flashcard skipped:', card.it || card.de, 'skip count:', card.skippedCount);
+        }
+    }
+    
+    // Simply move to next card
+    currentId = null;
+    updateLearn();
+}
+
 // Expose global functions for HTML onclick handlers
 window.selectMode = selectMode;
+window.stopLearning = stopLearning;
+window.nextFlashcard = nextFlashcard;
+window.gradeFlashcard = gradeFlashcard;
+window.checkArticle = checkArticle;
+window.checkPreposition = checkPreposition;
 window.toggleSuspend = toggleSuspend;
 window.deleteCard = deleteCard;
 window.addCard = addCard;
+window.continueFromType = continueFromType;
+window.continueFromConjugation = continueFromConjugation;
+window.continueFromPreposition = continueFromPreposition;
+window.continueFromArticle = continueFromArticle;
+window.skipFromType = skipFromType;
+window.skipFromConjugation = skipFromConjugation;
+window.skipFromPreposition = skipFromPreposition;
+window.skipFromArticle = skipFromArticle;
+window.skipFlashcard = skipFlashcard;
 
 // Test function to verify buttons work
 window.testButton = function() {
