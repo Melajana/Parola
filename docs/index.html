@@ -318,14 +318,6 @@
         <tbody id="tableBody"></tbody>
       </table>
     </div>
-    
-    <div class="actions wrap" style="margin-top:24px;">
-      <button id="exportBtn" class="btn ghost clickfx">Export als JSON</button>
-      <label class="file-btn btn ghost clickfx">JSON importieren <input id="fileJson" type="file" accept="application/json" hidden></label>
-      <label class="file-btn btn ghost clickfx">CSV importieren <input id="fileCsv" type="file" accept=".csv,text/csv" hidden></label>
-      <button id="csvTplBtn" class="btn ghost clickfx">CSV‑Vorlage herunterladen</button>
-      <button id="clearBtn" class="btn ghost clickfx">Alles löschen</button>
-    </div>
   </section>
 
   <!-- Settings -->
@@ -384,11 +376,19 @@
     </div>
     
     <h3 style="margin-top:24px;">Daten-Verwaltung</h3>
+    <div class="muted" style="margin-bottom:12px;">
+      💾 <strong>Export:</strong> Vollständige Sicherung aller Daten als JSON-Datei<br>
+      📤 <strong>Import:</strong> Unterstützte Formate: JSON (.json), CSV (.csv)<br>
+      🗂️ <strong>CSV-Format:</strong> Spalten: italian,german,category (UTF-8 codiert)
+    </div>
     <div class="button-group">
-      <button id="exportBtn" class="btn ghost clickfx">📥 Daten exportieren</button>
-      <input type="file" id="importFile" accept=".json" style="display:none">
-      <button id="importBtn" class="btn ghost clickfx">📤 Daten importieren</button>
-      <button id="clearBtn" class="btn ghost clickfx" style="color: var(--bad);">🗑️ Alle Daten löschen</button>
+      <button id="exportBtn" class="btn ghost clickfx">📥 Vollständigen Export erstellen</button>
+      <input type="file" id="importFile" accept=".json,.csv,text/csv" style="display:none">
+      <button id="importBtn" class="btn ghost clickfx">📤 Daten importieren (JSON/CSV)</button>
+      <button id="csvTplBtn" class="btn ghost clickfx">📋 CSV-Vorlage herunterladen</button>
+    </div>
+    <div class="button-group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+      <button id="clearBtn" class="btn ghost clickfx" style="color: var(--bad);">🗑️ Alle Daten unwiderruflich löschen</button>
     </div>
     
     <h4 style="margin-top:16px;">Kategorie-Performance</h4>

@@ -351,9 +351,238 @@ function clearAllData() {
             save();
             renderList();
             updateLearn();
+            renderStats();
             alert('Alle Daten wurden gelöscht.');
         }
     }
+}
+
+// Settings management
+function initializeSettings() {
+    // Load current settings into UI
+    const newPerSession = byId('newPerSession');
+    const maxReviews = byId('maxReviews');
+    const toleranceSelect = byId('toleranceSelect');
+    const speechRateSelect = byId('speechRateSelect');
+    const autoSpeakCheck = byId('autoSpeakCheck');
+    const speakOnFlipCheck = byId('speakOnFlipCheck');
+    const repeatAudioCheck = byId('repeatAudioCheck');
+    const dailyGoalInput = byId('dailyGoalInput');
+    
+    // Set current values
+    if (newPerSession) newPerSession.value = state.settings.newPerSession || 10;
+    if (maxReviews) maxReviews.value = state.settings.maxReviews || 100;
+    if (toleranceSelect) toleranceSelect.value = state.settings.tolerance || 20;
+    if (speechRateSelect) speechRateSelect.value = state.settings.speechRate || 0.8;
+    if (autoSpeakCheck) autoSpeakCheck.checked = state.settings.autoSpeak || false;
+    if (speakOnFlipCheck) speakOnFlipCheck.checked = state.settings.speakOnFlip !== false;
+    if (repeatAudioCheck) repeatAudioCheck.checked = state.settings.repeatAudio || false;
+    if (dailyGoalInput) dailyGoalInput.value = state.dailyGoal || 20;
+    
+    // Add event listeners
+    if (newPerSession) {
+        newPerSession.addEventListener('change', () => {
+            state.settings.newPerSession = parseInt(newPerSession.value) || 10;
+            save();
+        });
+    }
+    
+    if (maxReviews) {
+        maxReviews.addEventListener('change', () => {
+            state.settings.maxReviews = parseInt(maxReviews.value) || 100;
+            save();
+        });
+    }
+    
+    if (toleranceSelect) {
+        toleranceSelect.addEventListener('change', () => {
+            state.settings.tolerance = parseInt(toleranceSelect.value) || 20;
+            save();
+        });
+    }
+    
+    if (speechRateSelect) {
+        speechRateSelect.addEventListener('change', () => {
+            state.settings.speechRate = parseFloat(speechRateSelect.value) || 0.8;
+            save();
+        });
+    }
+    
+    if (autoSpeakCheck) {
+        autoSpeakCheck.addEventListener('change', () => {
+            state.settings.autoSpeak = autoSpeakCheck.checked;
+            save();
+        });
+    }
+    
+    if (speakOnFlipCheck) {
+        speakOnFlipCheck.addEventListener('change', () => {
+            state.settings.speakOnFlip = speakOnFlipCheck.checked;
+            save();
+        });
+    }
+    
+    if (repeatAudioCheck) {
+        repeatAudioCheck.addEventListener('change', () => {
+            state.settings.repeatAudio = repeatAudioCheck.checked;
+            save();
+        });
+    }
+    
+    if (dailyGoalInput) {
+        dailyGoalInput.addEventListener('change', () => {
+            state.dailyGoal = parseInt(dailyGoalInput.value) || 20;
+            save();
+            renderStats();
+        });
+    }
+    
+    // Initial stats render
+    renderStats();
+}
+
+// Statistics and progress tracking
+function addHistory(result) {
+    const today = new Date().toISOString().slice(0, 10);
+    if (!state.history) state.history = [];
+    
+    let entry = state.history.find(h => h.date === today);
+    if (!entry) {
+        entry = { date: today, correct: 0, incorrect: 0, total: 0 };
+        state.history.push(entry);
+    }
+    
+    entry.total++;
+    if (result === 'good') {
+        entry.correct++;
+    } else {
+        entry.incorrect++;
+    }
+    
+    // Update streak
+    if (result === 'good') {
+        state.streak = (state.streak || 0) + 1;
+    } else if (result === 'again') {
+        state.streak = 0;
+    }
+    
+    // Keep only last 30 days
+    state.history = state.history
+        .filter(h => (now() - new Date(h.date).getTime()) < 30 * 24 * 60 * 60 * 1000)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+    
+    save();
+    renderStats();
+}
+
+function renderStats() {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayEntry = state.history?.find(h => h.date === today);
+    const todayCount = todayEntry?.total || 0;
+    const todayCorrect = todayEntry?.correct || 0;
+    
+    // Update basic stats
+    const statToday = byId('statToday');
+    const statTotal = byId('statTotal');
+    const statStreak = byId('statStreak');
+    const statLevel = byId('statLevel');
+    const goalProgress = byId('goalProgress');
+    
+    if (statToday) statToday.textContent = todayCount;
+    if (statTotal) statTotal.textContent = state.items.length;
+    if (statStreak) statStreak.textContent = state.streak || 0;
+    if (statLevel) statLevel.textContent = Math.floor((state.streak || 0) / 10) + 1;
+    if (goalProgress) goalProgress.textContent = `${todayCount}/${state.dailyGoal || 20}`;
+    
+    // Category stats
+    renderCategoryStats();
+    
+    // Achievements
+    checkAchievements();
+}
+
+function renderCategoryStats() {
+    const categoryStats = byId('categoryStats');
+    if (!categoryStats) return;
+    
+    const categories = {};
+    state.items.forEach(item => {
+        const cat = item.category || 'other';
+        if (!categories[cat]) {
+            categories[cat] = { total: 0, correct: 0, attempts: 0 };
+        }
+        categories[cat].total++;
+        categories[cat].correct += item.correct || 0;
+        categories[cat].attempts += item.attempts || 0;
+    });
+    
+    categoryStats.innerHTML = Object.entries(categories)
+        .map(([cat, stats]) => {
+            const rate = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : 0;
+            return `
+                <div class="stat">
+                    <div class="stat-num">${rate}%</div>
+                    <div class="stat-label">${cat} (${stats.total})</div>
+                </div>
+            `;
+        }).join('');
+}
+
+function checkAchievements() {
+    if (!state.achievements) state.achievements = [];
+    
+    const today = new Date().toISOString().slice(0, 10);
+    const todayEntry = state.history?.find(h => h.date === today);
+    const todayCount = todayEntry?.total || 0;
+    
+    // Check for new achievements
+    const achievements = [
+        { id: 'first_word', name: 'Erste Schritte', desc: 'Erste Vokabel gelernt', condition: () => state.items.some(i => i.attempts > 0) },
+        { id: 'daily_goal', name: 'Tägliches Ziel', desc: 'Tagesziel erreicht', condition: () => todayCount >= (state.dailyGoal || 20) },
+        { id: 'streak_7', name: 'Woche perfekt', desc: '7 Tage Streak', condition: () => (state.streak || 0) >= 7 },
+        { id: 'streak_30', name: 'Monat perfekt', desc: '30 Tage Streak', condition: () => (state.streak || 0) >= 30 },
+        { id: 'hundred_cards', name: 'Jahrhundert', desc: '100 Karten gelernt', condition: () => state.items.length >= 100 }
+    ];
+    
+    achievements.forEach(achievement => {
+        if (!state.achievements.includes(achievement.id) && achievement.condition()) {
+            state.achievements.push(achievement.id);
+            showAchievementNotification(achievement);
+        }
+    });
+    
+    // Render achievements list
+    const achievementsList = byId('achievementsList');
+    if (achievementsList) {
+        achievementsList.innerHTML = achievements
+            .filter(a => state.achievements.includes(a.id))
+            .map(a => `<div class="achievement">🏆 <strong>${a.name}</strong>: ${a.desc}</div>`)
+            .join('');
+    }
+}
+
+function showAchievementNotification(achievement) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'achievement-notification';
+    notification.innerHTML = `
+        <div class="achievement-popup">
+            <div class="achievement-icon">🏆</div>
+            <div>
+                <div style="font-weight:600;">${achievement.name}</div>
+                <div style="font-size:12px;">${achievement.desc}</div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after animation
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 4000);
 }
 
 // Initialize the app
@@ -573,10 +802,22 @@ document.addEventListener('DOMContentLoaded', function() {
         importFile.addEventListener('change', importData);
     }
     
+    // CSV Template Download
+    const csvTplBtn = byId('csvTplBtn');
+    if (csvTplBtn) {
+        csvTplBtn.addEventListener('click', downloadCSVTemplate);
+    }
+    
     const clearBtn = byId('clearBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', clearAllData);
     }
+    
+    // Initialize settings controls
+    initializeSettings();
+    
+    // Lade und zeige Statistiken
+    renderStats();
     
     // Initialize
     showView('learn');
@@ -1152,12 +1393,193 @@ function addHistory(r) {
     const k = new Date().toISOString().slice(0, 10);
     let row = state.history.find(x => x.d === k);
     if (!row) {
-        row = { d: k, good: 0, bad: 0 };
+        row = { 
+            d: k, 
+            good: 0, 
+            bad: 0, 
+            categories: {}, 
+            total: 0, 
+            timeSpent: 0
+        };
         state.history.push(row);
     }
+    
+    // Grundlegende Statistiken
     if (r === 'good') row.good++;
     else row.bad++;
+    row.total = (row.total || 0) + 1;
+    
+    // Kategorie-Statistiken
+    if (state.currentLesson && state.currentLesson.category) {
+        const category = state.currentLesson.category;
+        if (!row.categories) row.categories = {};
+        if (!row.categories[category]) {
+            row.categories[category] = { total: 0, correct: 0 };
+        }
+        row.categories[category].total++;
+        if (r === 'good') {
+            row.categories[category].correct++;
+        }
+    }
+    
     save();
+    checkAchievements();
+}
+
+function calculateStreak() {
+    if (!state.history || state.history.length === 0) return 0;
+    
+    let streak = 0;
+    const sortedHistory = [...state.history]
+        .sort((a, b) => new Date(b.d) - new Date(a.d));
+    
+    for (const entry of sortedHistory) {
+        const total = entry.total || (entry.good + entry.bad);
+        if (total > 0) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    
+    return streak;
+}
+
+// Export/Import Funktionen für Statistiken
+function exportData() {
+    const data = {
+        lessons: state.lessons,
+        history: state.history,
+        settings: {
+            newPerSession: state.newPerSession,
+            maxReviews: state.maxReviews,
+            tolerance: state.tolerance,
+            speechRate: state.speechRate,
+            autoSpeak: state.autoSpeak,
+            speakOnFlip: state.speakOnFlip,
+            repeatAudio: state.repeatAudio,
+            dailyGoal: state.dailyGoal
+        },
+        exportedAt: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `italienisch-lernen-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const content = e.target.result;
+            let data;
+            
+            if (file.name.endsWith('.csv')) {
+                // CSV Import
+                data = parseCSV(content);
+                if (data.lessons) {
+                    state.lessons = [...state.lessons, ...data.lessons];
+                    save();
+                    render();
+                    alert(`${data.lessons.length} Vokabeln aus CSV erfolgreich importiert!`);
+                }
+            } else {
+                // JSON Import (vollständiger Backup)
+                data = JSON.parse(content);
+                
+                if (data.lessons) state.lessons = data.lessons;
+                if (data.history) state.history = data.history;
+                if (data.settings) {
+                    state.newPerSession = data.settings.newPerSession || 10;
+                    state.maxReviews = data.settings.maxReviews || 100;
+                    state.tolerance = data.settings.tolerance || 'medium';
+                    state.speechRate = data.settings.speechRate || 1.0;
+                    state.autoSpeak = data.settings.autoSpeak || false;
+                    state.speakOnFlip = data.settings.speakOnFlip !== false;
+                    state.repeatAudio = data.settings.repeatAudio || false;
+                    state.dailyGoal = data.settings.dailyGoal || 20;
+                }
+                
+                save();
+                initializeSettings(); // Aktualisiere UI
+                renderStats(); // Aktualisiere Statistiken
+                render(); // Aktualisiere Hauptansicht
+                
+                alert('Vollständige Daten erfolgreich importiert!');
+            }
+        } catch (error) {
+            alert('Fehler beim Importieren: ' + error.message);
+        }
+        
+        // Reset file input
+        event.target.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function parseCSV(csvContent) {
+    const lines = csvContent.split('\n').filter(line => line.trim());
+    const lessons = [];
+    
+    // Skip header if it exists
+    let startIndex = 0;
+    if (lines[0] && lines[0].toLowerCase().includes('italian')) {
+        startIndex = 1;
+    }
+    
+    for (let i = startIndex; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Simple CSV parsing (handles basic cases)
+        const parts = line.split(',').map(part => part.trim().replace(/^"|"$/g, ''));
+        
+        if (parts.length >= 2) {
+            const italian = parts[0];
+            const german = parts[1];
+            const category = parts[2] || 'imported';
+            
+            if (italian && german) {
+                lessons.push({
+                    id: Date.now() + Math.random(),
+                    it: italian,
+                    de: german,
+                    category: category,
+                    reps: 0,
+                    interval: 1,
+                    ef: 2.5,
+                    due: Date.now(),
+                    suspended: false
+                });
+            }
+        }
+    }
+    
+    return { lessons };
+}
+
+function downloadCSVTemplate() {
+    const csvContent = `italian,german,category
+mangiare,essen,verbs
+casa,Haus,nouns
+bello,schön,adjectives
+con,mit,prepositions`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'italienisch-lernen-vorlage.csv';
+    a.click();
+    URL.revokeObjectURL(url);
 }
 
 // Helper functions
