@@ -7,8 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=srs11"/>
-  <script defer src="app.js?v=srs11"></script>
+  <link rel="stylesheet" href="style.css?v=srs17"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script defer src="app.js?v=srs17"></script>
 </head>
 <body>
 <header class="app-header">
@@ -65,6 +66,10 @@
     <div class="current-learning" style="margin-top: 24px;">
       <div class="muted" id="learnMeta" style="margin-bottom:8px">Wähle einen Lernmodus</div>
       <div id="learnWord" class="word">—</div>
+      <!-- Weiter-Button für "Alle Karten gelernt" Ansicht -->
+      <div class="actions" id="continueSection" style="display:none; margin-top: 16px;">
+        <button class="btn primary clickfx" id="mainContinueBtn" onclick="nextFlashcard()">Weiter üben</button>
+      </div>
       <button class="speaker-icon" id="speakBtn" title="Vorlesen"><img src="assets/Hear-Icon.svg" alt="Hören"></button>
     </div>
 
@@ -84,8 +89,14 @@
 
     <!-- Verb-Konjugation -->
     <div id="conjugationBox" class="conjugation-box" style="display:none">
-      <div class="muted" style="margin-bottom:12px">Konjugiere das Verb im Präsens:</div>
-      <div id="conjugationPronoun" class="word" style="font-size:24px;margin-bottom:12px">—</div>
+      <div class="muted" style="margin-bottom:12px">Wählen Sie Ihre Zeitform:</div>
+      <div style="display:flex;justify-content:center;margin-bottom:12px">
+        <select id="tenseSelect" class="input input-compact" style="max-width:200px">
+          <option value="presente">Präsens (presente)</option>
+          <option value="passato_prossimo">Perfekt (passato prossimo)</option>
+        </select>
+      </div>
+      <div id="conjugationPronoun" class="word" style="font-size:32px;margin-bottom:12px">—</div>
       <input id="conjugationInput" class="input" placeholder="Konjugierte Form eingeben…"/>
       <div class="actions">
         <button class="btn ghost clickfx" id="conjRevealBtn">Auflösung zeigen</button>
@@ -100,28 +111,18 @@
 
     <!-- Präposition im Kontext -->
     <div id="prepositionBox" class="preposition-box" style="display:none">
-      <div class="muted" style="margin-bottom:12px">Welche Präposition passt?</div>
-      <div id="prepositionContext" class="word" style="font-size:20px;margin-bottom:12px">—</div>
-      <div class="prep-options" id="prepOptions" style="display:flex;gap:12px;justify-content:center;margin-bottom:16px"></div>
-      <div class="actions" style="margin-bottom:12px">
-        <button class="btn ghost clickfx" id="prepSkipBtn" onclick="skipFromPreposition()">Überspringen</button>
-      </div>
-      <div id="prepFeedback" class="type-feedback" style="display:none;margin-top:12px"></div>
+      <div id="prepositionChoices"></div>
       <div class="actions">
+        <button class="btn ghost clickfx" id="prepSkipBtn" onclick="skipFromPreposition()">Überspringen</button>
         <button class="btn primary clickfx" id="prepContinueBtn" onclick="continueFromPreposition()" style="display:none">Weiter</button>
       </div>
     </div>
 
     <!-- Artikel-Training -->
     <div id="articleBox" class="article-box" style="display:none">
-      <div class="muted" style="margin-bottom:12px">Welcher Artikel passt?</div>
-      <div id="articleWord" class="word" style="font-size:28px;margin-bottom:12px">ragazzo</div>
-      <div class="article-options" id="articleOptions" style="display:flex;gap:12px;justify-content:center;margin-bottom:16px"></div>
-      <div class="actions" style="margin-bottom:12px">
-        <button class="btn ghost clickfx" id="articleSkipBtn" onclick="skipFromArticle()">Überspringen</button>
-      </div>
-      <div id="articleFeedback" class="type-feedback" style="display:none"></div>
+      <div id="articleChoices"></div>
       <div class="actions">
+        <button class="btn ghost clickfx" id="articleSkipBtn" onclick="skipFromArticle()">Überspringen</button>
         <button class="btn primary clickfx" id="articleContinueBtn" onclick="continueFromArticle()" style="display:none">Weiter</button>
       </div>
     </div>
@@ -147,7 +148,7 @@
     </div>
 
     <!-- Old Flashcard System (fallback) -->
-    <div id="answerBox" class="muted" style="margin-top:10px; font-size:20px; display:none"></div>
+    <div id="answerBox" class="muted" style="margin-top:10px; font-size:32px; display:none"></div>
     <div id="mcBox" class="mc-box" style="display:none"></div>
 
     <div class="actions" id="fcActions" style="display:none">
@@ -163,9 +164,33 @@
 
   <!-- Add -->
   <section class="card view" id="view-add" hidden>
-    <div style="margin-bottom:16px">
-      <label>Kartentyp</label>
-      <select id="addTypeSelect" class="input">
+    <h2 style="margin-bottom:24px;font-size:24px;font-weight:600;">Vokabeln hinzufügen</h2>
+    
+    <!-- Kartentyp Selection -->
+    <div style="background:var(--ghost);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:18px">🃏</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Kartentyp wählen</h3>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+        <button type="button" class="card-type-btn" data-type="vocab" style="padding:12px;border:2px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <span style="font-size:20px">📚</span>
+          <span style="font-size:14px;font-weight:500">Vokabel</span>
+        </button>
+        <button type="button" class="card-type-btn" data-type="prep" style="padding:12px;border:2px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <span style="font-size:20px">📍</span>
+          <span style="font-size:14px;font-weight:500">Präposition</span>
+        </button>
+        <button type="button" class="card-type-btn" data-type="verb" style="padding:12px;border:2px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <span style="font-size:20px">⚡</span>
+          <span style="font-size:14px;font-weight:500">Verb</span>
+        </button>
+        <button type="button" class="card-type-btn" data-type="article" style="padding:12px;border:2px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px">
+          <span style="font-size:20px">📄</span>
+          <span style="font-size:14px;font-weight:500">Artikel</span>
+        </button>
+      </div>
+      <select id="addTypeSelect" class="input" style="display:none">
         <option value="vocab">Vokabel</option>
         <option value="prep">Präposition</option>
         <option value="verb">Verb</option>
@@ -174,18 +199,39 @@
     </div>
 
     <!-- Vokabel Form -->
-    <div id="basicForm">
-      <div class="grid grid-2">
-        <label>Italienisch <input id="itInput" class="input" placeholder="ragazzo / essere"></label>
-        <label>Deutsch <input id="deInput" class="input" placeholder="Junge / sein"></label>
+    <div id="basicForm" style="background:color-mix(in srgb, #3b82f6 8%, var(--surface));border:1px solid color-mix(in srgb, #3b82f6 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="font-size:18px">📚</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Vokabel eingeben</h3>
       </div>
-      <label style="display:block; margin-top:10px;">Notizen (optional)
-        <input id="notesInput" class="input" placeholder="Plural: ragazzi / Hilfsverb">
+      <div class="grid grid-2">
+        <label style="font-size:14px;font-weight:500;margin-bottom:6px;display:block">
+          Italienisch
+          <input id="itInput" class="input" placeholder="ragazzo / essere" style="margin-top:4px">
+        </label>
+        <label style="font-size:14px;font-weight:500;margin-bottom:6px;display:block">
+          Deutsch
+          <input id="deInput" class="input" placeholder="Junge / sein" style="margin-top:4px">
+        </label>
+      </div>
+      <label style="font-size:14px;font-weight:500;margin-top:12px;display:block">
+        Notizen (optional)
+        <input id="notesInput" class="input" placeholder="Plural: ragazzi / Hilfsverb" style="margin-top:4px">
       </label>
+      
+      <!-- Action Buttons integrated in form -->
+      <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
+        <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
+      </div>
     </div>
 
     <!-- Preposition Form -->
-    <div id="prepForm" style="display:none">
+    <div id="prepForm" style="display:none;background:color-mix(in srgb, #10b981 8%, var(--surface));border:1px solid color-mix(in srgb, #10b981 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="font-size:18px">📍</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Präposition eingeben</h3>
+      </div>
       <div class="grid grid-2">
         <label>Präposition (Italienisch) <input id="prepWord" class="input" placeholder="a"></label>
         <label>Bedeutung (Deutsch) <input id="prepMeaning" class="input" placeholder="zu, nach, in"></label>
@@ -199,10 +245,20 @@
         <input id="prepContext2" class="input" placeholder="Penso ___ te" style="margin-bottom:5px;">
         <input id="prepContext3" class="input" placeholder="Arrivo ___ Milano (optional)">
       </div>
+      
+      <!-- Action Buttons integrated in form -->
+      <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
+        <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
+      </div>
     </div>
 
     <!-- Verb Form -->
-    <div id="verbForm" style="display:none">
+    <div id="verbForm" style="display:none;background:color-mix(in srgb, #f59e0b 8%, var(--surface));border:1px solid color-mix(in srgb, #f59e0b 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="font-size:18px">⚡</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Verb eingeben</h3>
+      </div>
       <label style="display:block;margin-bottom:10px">Infinitiv (Italienisch)
         <input id="verbInfinitive" class="input" placeholder="parlare">
       </label>
@@ -218,10 +274,20 @@
         <label style="font-size:14px">voi <input id="conj_voi" class="input input-compact" placeholder="parlate"></label>
         <label style="font-size:14px">loro <input id="conj_loro" class="input input-compact" placeholder="parlano"></label>
       </div>
+      
+      <!-- Action Buttons integrated in form -->
+      <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
+        <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
+      </div>
     </div>
 
     <!-- Article Form -->
-    <div id="articleForm" style="display:none">
+    <div id="articleForm" style="display:none;background:color-mix(in srgb, #ef4444 8%, var(--surface));border:1px solid color-mix(in srgb, #ef4444 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="font-size:18px">📄</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Artikel eingeben</h3>
+      </div>
       <div class="grid grid-2">
         <label>Wort (Italienisch) <input id="articleWord" class="input" placeholder="ragazzo"></label>
         <label>Übersetzung (Deutsch) <input id="articleTranslation" class="input" placeholder="der Junge"></label>
@@ -250,17 +316,58 @@
       <label style="display:block; margin-top:10px;">Notizen (optional)
         <input id="articleNotes" class="input" placeholder="z.B. Plural: ragazzi">
       </label>
+      
+      <!-- Action Buttons integrated in form -->
+      <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+        <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
+        <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
+      </div>
     </div>
 
-    <div class="actions">
-      <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
-      <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
+    <h2 style="margin-top:32px;margin-bottom:16px;font-size:20px;font-weight:600;">Daten-Verwaltung</h2>
+    
+    <div style="display:grid;gap:16px;margin:20px 0">
+      <!-- Import Section -->
+      <div style="background:var(--ghost);border:1px solid var(--border);border-radius:12px;padding:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:18px">📥</span>
+          <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Daten importieren</h3>
+        </div>
+        <p style="margin:0 0 12px;color:var(--text);opacity:0.7;font-size:14px">Vokabeln aus Excel, CSV oder JSON-Dateien hinzufügen</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="excelBtn" class="btn ghost clickfx" style="background:var(--surface)">📊 Excel</button>
+          <button id="importBtn" class="btn ghost clickfx" style="background:var(--surface)">📄 JSON/CSV</button>
+          <button id="csvTplBtn" class="btn ghost clickfx" style="background:var(--surface);opacity:0.8">📋 Vorlage</button>
+          <input type="file" id="excelFile" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="display:none">
+          <input type="file" id="importFile" accept=".json,.csv,text/csv" style="display:none">
+        </div>
+      </div>
+      
+      <!-- Export Section -->
+      <div style="background:var(--ghost);border:1px solid var(--border);border-radius:12px;padding:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:18px">📤</span>
+          <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Daten exportieren</h3>
+        </div>
+        <p style="margin:0 0 12px;color:var(--text);opacity:0.7;font-size:14px">Vollständige Sicherung aller Vokabeln erstellen</p>
+        <button id="exportBtn" class="btn ghost clickfx" style="background:var(--surface)">💾 Backup erstellen</button>
+      </div>
+      
+      <!-- Danger Zone -->
+      <div style="background:color-mix(in srgb,var(--bad) 5%,var(--surface));border:1px solid color-mix(in srgb,var(--bad) 20%,transparent);border-radius:12px;padding:16px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:18px">⚠️</span>
+          <h3 style="margin:0;color:var(--bad);font-size:16px;font-weight:600;">Gefährlicher Bereich</h3>
+        </div>
+        <p style="margin:0 0 12px;color:var(--text);opacity:0.7;font-size:14px">Diese Aktion kann nicht rückgängig gemacht werden</p>
+        <button id="clearBtn" class="btn ghost clickfx" style="color:var(--bad);border-color:var(--bad)">🗑️ Alle Daten löschen</button>
+      </div>
     </div>
   </section>
 
   <!-- Manage Vocabulary -->
   <section class="card view" id="view-manage" hidden>
-    <h3>Vokabeln verwalten</h3>
+    <h2 style="margin-bottom:24px;font-size:24px;font-weight:600;">Vokabeln verwalten</h2>
     <div class="list-controls">
       <input id="searchInput" class="input" placeholder="Suchen…"/>
       <select id="statusFilter" class="input input-compact">
@@ -322,82 +429,135 @@
 
   <!-- Settings -->
   <section class="card view" id="view-settings" hidden>
-    <h3>Einstellungen</h3>
-    <div class="grid grid-2">
-      <label>Neue Karten pro Sitzung <input id="newPerSession" type="number" class="input" value="10"></label>
-      <label>Max. Wiederholungen pro Sitzung <input id="maxReviews" type="number" class="input" value="100"></label>
-    </div>
-    <div class="grid grid-2" style="margin-top:12px">
-      <label>Fehler‑Toleranz (Tippen)
-        <select id="toleranceSelect" class="input">
-          <option value="0">Streng (0 %)</option>
-          <option value="10">Mittel (10 %)</option>
-          <option value="20" selected>Locker (20 %)</option>
-        </select>
-      </label>
-      <label>Sprechgeschwindigkeit
-        <select id="speechRateSelect" class="input">
-          <option value="0.6">Langsam</option>
-          <option value="0.8" selected>Normal</option>
-          <option value="1.0">Schnell</option>
-        </select>
-      </label>
-    </div>
-    <div class="grid grid-2" style="margin-top:12px">
-      <label style="display:flex;align-items:center;gap:8px">
-        <input id="autoSpeakCheck" type="checkbox" style="margin:0">
-        Auto-Aussprache bei neuen Karten
-      </label>
-      <label style="display:flex;align-items:center;gap:8px">
-        <input id="speakOnFlipCheck" type="checkbox" style="margin:0" checked>
-        Audio beim Karten umdrehen
-      </label>
-    </div>
-    <div class="grid grid-1" style="margin-top:12px">
-      <label style="display:flex;align-items:center;gap:8px">
-        <input id="repeatAudioCheck" type="checkbox" style="margin:0">
-        Schwierige Wörter wiederholen
-      </label>
-    </div>
-
-    <h3 style="margin-top:24px;">Statistik & Ziele</h3>
-    <div class="grid grid-2" style="margin-bottom:16px">
-      <label>Tägliches Ziel <input id="dailyGoalInput" type="number" class="input" value="20" min="5" max="100"></label>
-      <div class="stat goal-progress">
-        <div class="stat-num" id="goalProgress">0/20</div>
-        <div class="stat-label">Heute gelernt</div>
+    <h2 style="margin-bottom:24px;font-size:24px;font-weight:600;">Einstellungen</h2>
+    
+    <!-- Basic Settings -->
+    <div style="background:color-mix(in srgb, #3b82f6 8%, var(--surface));border:1px solid color-mix(in srgb, #3b82f6 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <span style="font-size:18px">⚙️</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Grundeinstellungen</h3>
+      </div>
+      <div class="grid grid-2">
+        <label>Neue Karten pro Sitzung <input id="newPerSession" type="number" class="input" value="10"></label>
+        <label>Max. Wiederholungen pro Sitzung <input id="maxReviews" type="number" class="input" value="100"></label>
+      </div>
+      <div class="grid grid-2" style="margin-top:12px">
+        <label>Fehler‑Toleranz (Tippen)
+          <select id="toleranceSelect" class="input">
+            <option value="0">Streng (0 %)</option>
+            <option value="10">Mittel (10 %)</option>
+            <option value="20" selected>Locker (20 %)</option>
+          </select>
+        </label>
+        <label>Sprechgeschwindigkeit
+          <select id="speechRateSelect" class="input">
+            <option value="0.6">Langsam</option>
+            <option value="0.8" selected>Normal</option>
+            <option value="1.0">Schnell</option>
+          </select>
+        </label>
       </div>
     </div>
-    <div id="statsRow" class="stats-row">
-      <div class="stat"><div class="stat-num" id="statToday">0</div><div class="stat-label">Heute gelernt</div></div>
-      <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Gesamt gelernt</div></div>
-      <div class="stat"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Aktueller Streak</div></div>
-      <div class="stat"><div class="stat-num" id="statLevel">1</div><div class="stat-label">Level</div></div>
+    
+    <!-- Audio & Verhalten Settings -->
+    <div style="background:color-mix(in srgb, #10b981 8%, var(--surface));border:1px solid color-mix(in srgb, #10b981 20%, var(--border));border-radius:12px;padding:16px;margin:20px 0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:18px">🔊</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Audio & Verhalten</h3>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap">
+          <input id="autoSpeakCheck" type="checkbox" style="margin:0;width:16px;height:16px;accent-color:var(--accent)">
+          <span style="font-weight:500;font-size:14px">Auto-Aussprache</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap">
+          <input id="speakOnFlipCheck" type="checkbox" style="margin:0;width:16px;height:16px;accent-color:var(--accent)" checked>
+          <span style="font-weight:500;font-size:14px">Audio beim Umdrehen</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap">
+          <input id="repeatAudioCheck" type="checkbox" style="margin:0;width:16px;height:16px;accent-color:var(--accent)">
+          <span style="font-weight:500;font-size:14px">Schwierige wiederholen</span>
+        </label>
+      </div>
+    </div>
+
+    <h2 style="margin-top:32px;margin-bottom:16px;font-size:20px;font-weight:600;">Statistik & Ziele</h2>
+    
+    <!-- Ziele Section -->
+    <div style="background:color-mix(in srgb, #f59e0b 8%, var(--surface));border:1px solid color-mix(in srgb, #f59e0b 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:18px">🎯</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Tägliches Ziel</h3>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-weight:500;font-size:14px;white-space:nowrap">Ziel pro Tag:</label>
+          <input id="dailyGoalInput" type="number" class="input" value="20" min="5" max="100" style="width:80px;padding:6px 10px">
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <span style="font-weight:500;font-size:14px">Fortschritt heute</span>
+            <span id="goalProgress" style="font-weight:600;color:var(--accent)">0/20</span>
+          </div>
+          <div style="background:var(--border);border-radius:8px;height:8px;overflow:hidden">
+            <div id="goalProgressBar" style="background:var(--accent);height:100%;width:0%;transition:width 0.3s ease;border-radius:8px"></div>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <h3 style="margin-top:24px;">Daten-Verwaltung</h3>
-    <div class="muted" style="margin-bottom:12px;">
-      💾 <strong>Export:</strong> Vollständige Sicherung aller Daten als JSON-Datei<br>
-      📤 <strong>Import:</strong> Unterstützte Formate: JSON (.json), CSV (.csv)<br>
-      🗂️ <strong>CSV-Format:</strong> Spalten: italian,german,category (UTF-8 codiert)
-    </div>
-    <div class="button-group">
-      <button id="exportBtn" class="btn ghost clickfx">📥 Vollständigen Export erstellen</button>
-      <input type="file" id="importFile" accept=".json,.csv,text/csv" style="display:none">
-      <button id="importBtn" class="btn ghost clickfx">📤 Daten importieren (JSON/CSV)</button>
-      <button id="csvTplBtn" class="btn ghost clickfx">📋 CSV-Vorlage herunterladen</button>
-    </div>
-    <div class="button-group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-      <button id="clearBtn" class="btn ghost clickfx" style="color: var(--bad);">🗑️ Alle Daten unwiderruflich löschen</button>
+    <!-- Statistik Overview -->
+    <div style="background:color-mix(in srgb, #8b5cf6 8%, var(--surface));border:1px solid color-mix(in srgb, #8b5cf6 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:18px">📊</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Lern-Statistiken</h3>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+        <div style="text-align:center;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+          <div id="statToday" style="font-size:24px;font-weight:700;color:var(--accent);margin-bottom:4px">0</div>
+          <div style="font-size:12px;color:var(--text);opacity:0.7;font-weight:500">Heute gelernt</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+          <div id="statTotalLearned" style="font-size:24px;font-weight:700;color:var(--ok);margin-bottom:4px">0</div>
+          <div style="font-size:12px;color:var(--text);opacity:0.7;font-weight:500">Gesamt gelernt</div>
+        </div>
+        <div style="text-align:center;padding:12px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+          <div id="statLevel" style="font-size:24px;font-weight:700;color:var(--accent);margin-bottom:4px">1</div>
+          <div style="font-size:12px;color:var(--text);opacity:0.7;font-weight:500">Level</div>
+        </div>
+      </div>
     </div>
     
-    <h4 style="margin-top:16px;">Kategorie-Performance</h4>
-    <div id="categoryStats" class="category-stats"></div>
+    <!-- Kategorie Performance -->
+    <div style="background:color-mix(in srgb, #ef4444 8%, var(--surface));border:1px solid color-mix(in srgb, #ef4444 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:18px">📈</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Kategorie-Performance</h3>
+      </div>
+      <div id="categoryStats" class="category-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px"></div>
+    </div>
     
-    <h4 style="margin-top:16px;">Erfolge 🏆</h4>
-    <div id="achievementsList" class="achievements"></div>
-    <canvas id="statsChart" width="600" height="160" class="stats-chart"></canvas>
-    <div class="muted" style="margin-top:8px">Grün = richtig, Rot = falsch (letzte 7 Tage)</div>
+    <!-- Erfolge -->
+    <div style="background:color-mix(in srgb, #06b6d4 8%, var(--surface));border:1px solid color-mix(in srgb, #06b6d4 20%, var(--border));border-radius:12px;padding:16px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:18px">🏆</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Erfolge</h3>
+      </div>
+      <div id="achievementsList" class="achievements" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px"></div>
+    </div>
+    
+    <!-- Lernverlauf Chart -->
+    <div style="background:color-mix(in srgb, #84cc16 8%, var(--surface));border:1px solid color-mix(in srgb, #84cc16 20%, var(--border));border-radius:12px;padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:18px">📉</span>
+        <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Lernverlauf (7 Tage)</h3>
+      </div>
+      <canvas id="statsChart" width="600" height="160" class="stats-chart" style="width:100%;max-width:600px;height:auto"></canvas>
+      <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--text);opacity:0.7">
+        <span style="color:var(--ok)">●</span> Richtig beantwortet
+        <span style="margin-left:16px;color:var(--bad)">●</span> Falsch beantwortet
+      </div>
+    </div>
   </section>
 </main>
 </body>
