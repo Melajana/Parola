@@ -17,7 +17,7 @@ state.settings = Object.assign({
     sortBy: 'default',
     autoSpeak: false,
     speechRate: 0.8,
-    speakOnFlip: true, // Audio beim Umdrehen standardmäßig aktiviert
+    speakOnFlip: false, // Audio beim Umdrehen standardmäßig deaktiviert
     repeatAudio: false
 }, state.settings || {});
 
