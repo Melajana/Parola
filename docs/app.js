@@ -1,82 +1,85 @@
+// @ts-nocheck
+/* jshint esversion: 11 */
+/* global speechSynthesis, SpeechSynthesisUtterance */
 // SRS11: Streamlined Learning App - Verbesserte Version
-const LS_KEY='parola:srs11';
-const MIN=60*1000,DAY=24*60*60*1000;
-const INTERVALS=[10*MIN,1*DAY,3*DAY,7*DAY,16*DAY];
+const LS_KEY = 'parola:srs11';
+const MIN = 60 * 1000, DAY = 24 * 60 * 60 * 1000;
+const INTERVALS = [10 * MIN, 1 * DAY, 3 * DAY, 7 * DAY, 16 * DAY];
 
 // State initialisieren
-const state=load()||seed();
-state.settings=Object.assign({
-    newPerSession:10,
-    maxReviews:100,
-    direction:'it-de',
-    mode:'flashcards',
-    tolerance:20,
-    sortBy:'default',
-    autoSpeak:false,
-    speechRate:0.8,
-    speakOnFlip:true, // Audio beim Umdrehen standardmäßig aktiviert
-    repeatAudio:false
-},state.settings||{});
+const state = load() || seed();
+state.settings = Object.assign({
+    newPerSession: 10,
+    maxReviews: 100,
+    direction: 'it-de',
+    mode: 'flashcards',
+    tolerance: 20,
+    sortBy: 'default',
+    autoSpeak: false,
+    speechRate: 0.8,
+    speakOnFlip: true, // Audio beim Umdrehen standardmäßig aktiviert
+    repeatAudio: false
+}, state.settings || {});
 
 save();
 
-function load(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch{return null}}
-function save(){localStorage.setItem(LS_KEY,JSON.stringify(state))}
-function uid(){return Math.random().toString(36).slice(2)}
-function now(){return Date.now()}
+function load() { try { return JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch { return null; } }
+function save() { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function uid() { return Math.random().toString(36).slice(2); }
+function now() { return Date.now(); }
 
-function nextSchedule(c,res){
-    let idx=Math.max(0,Math.min(INTERVALS.length-1,c.intervalIndex??0));
-    let st=c.streak??0;
-    if(res==='good'){
-        idx=Math.min(INTERVALS.length-1,idx+1);
+function nextSchedule(c, res) {
+    let idx = Math.max(0, Math.min(INTERVALS.length - 1, c.intervalIndex ?? 0));
+    let st = c.streak ?? 0;
+    if (res === 'good') {
+        idx = Math.min(INTERVALS.length - 1, idx + 1);
         st++;
-    }else{
-        idx=0;st=0;
+    } else {
+        idx = 0; st = 0;
     }
-    const attempts=(c.attempts||0)+1;
-    const correct=(c.correct||0)+(res==='good'?1:0);
-    return {...c,intervalIndex:idx,streak:st,dueAt:now()+INTERVALS[idx],attempts,correct};
+    const attempts = (c.attempts || 0) + 1;
+    const correct = (c.correct || 0) + (res === 'good' ? 1 : 0);
+    return { ...c, intervalIndex: idx, streak: st, dueAt: now() + INTERVALS[idx], attempts, correct };
 }
 
-function seed(){
-    const t=now();
-    const m=(it,de,notes,type='vocab',extra,category)=>({
-        id:uid(),it,de,notes,type,extra,category,createdAt:t,dueAt:t,
-        intervalIndex:0,streak:0,suspended:false,attempts:0,correct:0
+function seed() {
+    const t = now();
+    const m = (it, de, notes, extra, category, type = 'vocab') => ({
+        id: uid(), it, de, notes, type, extra, category, createdAt: t, dueAt: t,
+        intervalIndex: 0, streak: 0, suspended: false, attempts: 0, correct: 0
     });
     
-    return{
-        items:[
+    return {
+        items: [
             // Greetings
-            m('ciao','hallo; tschüss','','vocab',null,'greetings'),
-            m('grazie','danke','','vocab',null,'greetings'),
-            m('per favore','bitte','','vocab',null,'greetings'),
-            m('come stai?','wie geht\'s?','','vocab',null,'greetings'),
+            m('ciao','hallo; tschüss','',null,'greetings','vocab'),
+            m('grazie','danke','',null,'greetings','vocab'),
+            m('per favore','bitte','',null,'greetings','vocab'),
+            m('come stai?','wie geht\'s?','',null,'greetings','vocab'),
             
             // Food
-            m('acqua','Wasser','f. - l\'acqua','vocab',{article:'l\'',gender:'f'},'food'),
-            m('pane','Brot','m. - il pane','vocab',{article:'il',gender:'m'},'food'),
-            m('vino','Wein','m. - il vino','vocab',{article:'il',gender:'m'},'food'),
-            m('pizza','Pizza','f. - la pizza','vocab',{article:'la',gender:'f'},'food'),
-            m('gelato','Eis','m. - il gelato','vocab',{article:'il',gender:'m'},'food'),
+            m('acqua','Wasser','f. - l\'acqua',{article:'l\'',gender:'f'},'food','vocab'),
+            m('pane','Brot','m. - il pane',{article:'il',gender:'m'},'food','vocab'),
+            m('vino','Wein','m. - il vino',{article:'il',gender:'m'},'food','vocab'),
+            m('pizza','Pizza','f. - la pizza',{article:'la',gender:'f'},'food','vocab'),
+            m('gelato','Eis','m. - il gelato',{article:'il',gender:'m'},'food','vocab'),
             
             // Family
-            m('padre','Vater','m. - il padre','vocab',{article:'il',gender:'m'},'family'),
-            m('madre','Mutter','f. - la madre','vocab',{article:'la',gender:'f'},'family'),
-            m('figlio','Sohn','m. - il figlio','vocab',{article:'il',gender:'m'},'family'),
-            m('figlia','Tochter','f. - la figlia','vocab',{article:'la',gender:'f'},'family'),
+            m('padre','Vater','m. - il padre',{article:'il',gender:'m'},'family','vocab'),
+            m('madre','Mutter','f. - la madre',{article:'la',gender:'f'},'family','vocab'),
+            m('figlio','Sohn','m. - il figlio',{article:'il',gender:'m'},'family','vocab'),
+            m('figlia','Tochter','f. - la figlia',{article:'la',gender:'f'},'family','vocab'),
             
             // Prepositions
-            m('a','zu, nach, in','Ortsangabe, Zeit, Art','prep',{contexts:['Vado ___ scuola','Penso ___ te','Arrivo ___ Milano','Alle tre (alle ore ___)']},'grammar'),
-            m('di','von, aus','Besitz/Herkunft','prep',{contexts:['Il libro ___ Maria','Sono ___ Roma','Una camicia ___ cotone']},'grammar'),
-            m('da','von, seit, bei','Ausgangspunkt','prep',{contexts:['Vengo ___ casa','Aspetto ___ ieri','Vado ___ medico']},'grammar'),
-            m('in','in, nach','Richtung/Ort','prep',{contexts:['Siamo ___ Italia','Vivo ___ città','___ primavera']},'grammar'),
-            m('con','mit','Begleitung','prep',{contexts:['Vengo ___ te','Parlo ___ lui','Scrivo ___ la penna']},'grammar'),
-            m('per','für, durch','Zweck/Richtung','prep',{contexts:['Questo è ___ te','Parto ___ Roma','___ due settimane']},'grammar'),
+            m('a','zu, nach, in','Ortsangabe, Zeit, Art',{contexts:['Vado ___ scuola','Penso ___ te','Arrivo ___ Milano','Alle tre (alle ore ___)']},'grammar','prep'),
+            m('di','von, aus','Besitz/Herkunft',{contexts:['Il libro ___ Maria','Sono ___ Roma','Una camicia ___ cotone']},'grammar','prep'),
+            m('da','von, seit, bei','Ausgangspunkt',{contexts:['Vengo ___ casa','Aspetto ___ ieri','Vado ___ medico']},'grammar','prep'),
+            m('in','in, nach','Richtung/Ort',{contexts:['Siamo ___ Italia','Vivo ___ città','___ primavera']},'grammar','prep'),
+            m('con','mit','Begleitung',{contexts:['Vengo ___ te','Parlo ___ lui','Scrivo ___ la penna']},'grammar','prep'),
+            m('per','für, durch','Zweck/Richtung',{contexts:['Questo è ___ te','Parto ___ Roma','___ due settimane']},'grammar','prep'),
             
             // Verbs - Extended
-            m('essere','sein','io sono, tu sei, lui/lei è','verb',{
+            m('essere','sein','io sono, tu sei, lui/lei è',{
                 infinitive:'essere',
                 conjugations:{
                     presente:{io:'sono',tu:'sei',lui:'è',lei:'è',noi:'siamo',voi:'siete',loro:'sono'},
@@ -89,8 +92,8 @@ function seed(){
                     congiuntivo_imperfetto:{io:'fossi',tu:'fossi',lui:'fosse',lei:'fosse',noi:'fossimo',voi:'foste',loro:'fossero'},
                     imperativo:{tu:'sii',lui:'sia',lei:'sia',noi:'siamo',voi:'siate',loro:'siano'}
                 }
-            },'verbs'),
-            m('avere','haben','io ho, tu hai, lui/lei ha','verb',{
+            },'verbs','verb'),
+            m('avere','haben','io ho, tu hai, lui/lei ha',{
                 infinitive:'avere',
                 conjugations:{
                     presente:{io:'ho',tu:'hai',lui:'ha',lei:'ha',noi:'abbiamo',voi:'avete',loro:'hanno'},
@@ -103,22 +106,22 @@ function seed(){
                     congiuntivo_imperfetto:{io:'avessi',tu:'avessi',lui:'avesse',lei:'avesse',noi:'avessimo',voi:'aveste',loro:'avessero'},
                     imperativo:{tu:'abbi',lui:'abbia',lei:'abbia',noi:'abbiamo',voi:'abbiate',loro:'abbiano'}
                 }
-            },'verbs'),
-            m('parlare','sprechen','io parlo, tu parli','verb',{
+            },'verbs','verb'),
+            m('parlare','sprechen','io parlo, tu parli',{
                 infinitive:'parlare',
                 conjugations:{
                     presente:{io:'parlo',tu:'parli',lui:'parla',lei:'parla',noi:'parliamo',voi:'parlate',loro:'parlano'},
                     passato_prossimo:{io:'ho parlato',tu:'hai parlato',lui:'ha parlato',lei:'ha parlato',noi:'abbiamo parlato',voi:'avete parlato',loro:'hanno parlato'}
                 }
-            },'verbs'),
-            m('fare','machen','io faccio, tu fai','verb',{
+            },'verbs','verb'),
+            m('fare','machen','io faccio, tu fai',{
                 infinitive:'fare',
                 conjugations:{
                     presente:{io:'faccio',tu:'fai',lui:'fa',lei:'fa',noi:'facciamo',voi:'fate',loro:'fanno'},
                     passato_prossimo:{io:'ho fatto',tu:'hai fatto',lui:'ha fatto',lei:'ha fatto',noi:'abbiamo fatto',voi:'avete fatto',loro:'hanno fatto'}
                 }
-            },'verbs'),
-            m('andare','gehen','io vado, tu vai','verb',{
+            },'verbs','verb'),
+            m('andare','gehen','io vado, tu vai',{
                 infinitive:'andare',
                 conjugations:{
                     presente:{io:'vado',tu:'vai',lui:'va',lei:'va',noi:'andiamo',voi:'andate',loro:'vanno'},
@@ -126,8 +129,8 @@ function seed(){
                     imperfetto:{io:'andavo',tu:'andavi',lui:'andava',lei:'andava',noi:'andavamo',voi:'andavate',loro:'andavano'},
                     futuro:{io:'andrò',tu:'andrai',lui:'andrà',lei:'andrà',noi:'andremo',voi:'andrete',loro:'andranno'}
                 }
-            },'verbs'),
-            m('venire','kommen','io vengo, tu vieni','verb',{
+            },'verbs','verb'),
+            m('venire','kommen','io vengo, tu vieni',{
                 infinitive:'venire',
                 conjugations:{
                     presente:{io:'vengo',tu:'vieni',lui:'viene',lei:'viene',noi:'veniamo',voi:'venite',loro:'vengono'},
@@ -135,20 +138,20 @@ function seed(){
                     imperfetto:{io:'venivo',tu:'venivi',lui:'veniva',lei:'veniva',noi:'venivamo',voi:'venivate',loro:'venivano'},
                     futuro:{io:'verrò',tu:'verrai',lui:'verrà',lei:'verrà',noi:'verremo',voi:'verrete',loro:'verranno'}
                 }
-            },'verbs'),
-            m('dare','geben','io do, tu dai','verb',{
+            },'verbs','verb'),
+            m('dare','geben','io do, tu dai',{
                 infinitive:'dare',
                 conjugations:{
                     presente:{io:'do',tu:'dai',lui:'dà',lei:'dà',noi:'diamo',voi:'date',loro:'danno'},
                     passato_prossimo:{io:'ho dato',tu:'hai dato',lui:'ha dato',lei:'ha dato',noi:'abbiamo dato',voi:'avete dato',loro:'hanno dato'},
                     imperfetto:{io:'davo',tu:'davi',lui:'dava',lei:'dava',noi:'davamo',voi:'davate',loro:'davano'}
                 }
-            },'verbs'),
+            },'verbs','verb'),
             
             // Articles
-            m('ragazzo','der Junge','m. - il ragazzo','article',{article:'il',gender:'m',word:'ragazzo'},'articles'),
-            m('ragazza','das Mädchen','f. - la ragazza','article',{article:'la',gender:'f',word:'ragazza'},'articles'),
-            m('studente','der Student','m. - lo studente','article',{article:'lo',gender:'m',word:'studente'},'articles'),
+            m('ragazzo','der Junge','m. - il ragazzo',{article:'il',gender:'m',word:'ragazzo'},'articles','article'),
+            m('ragazza','das Mädchen','f. - la ragazza',{article:'la',gender:'f',word:'ragazza'},'articles','article'),
+            m('studente','der Student','m. - lo studente',{article:'lo',gender:'m',word:'studente'},'articles','article'),
         ],
         settings:{
             newPerSession:10,maxReviews:100,direction:'it-de',mode:'flashcards',
@@ -296,7 +299,7 @@ function showView(viewName) {
     });
 }
 
-// Mode selection with visual feedback
+// Mode selection with visual feedback + Progressive Disclosure (Perplexity-Style)
 function selectMode(modeName) {
     console.log('selectMode called with:', modeName);
     
@@ -323,6 +326,20 @@ function selectMode(modeName) {
         modeBtn.classList.add('active');
     } else {
         console.log('Mode button not found!');
+    }
+    
+    // 🚀 Progressive Disclosure: Lernrichtung erst nach Modus-Auswahl zeigen
+    const learnControls = document.querySelector('.learn-controls');
+    if (learnControls) {
+        // Smooth fade-in animation
+        learnControls.classList.add('active');
+        learnControls.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        
+        // Kurze Verzögerung für smooth UX
+        setTimeout(() => {
+            learnControls.style.opacity = '1';
+            learnControls.style.transform = 'scale(1) translateY(0)';
+        }, 150);
     }
     
     // Update state
@@ -745,6 +762,28 @@ document.addEventListener('DOMContentLoaded', function() {
             save();
             updateLearn();
         });
+    }
+    
+    // Filter and sorting event listeners
+    const searchInput = byId('searchInput');
+    const statusFilter = byId('statusFilter');
+    const successFilter = byId('successFilter');
+    const sortBy = byId('sortBy');
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', renderList);
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', renderList);
+    }
+    
+    if (successFilter) {
+        successFilter.addEventListener('change', renderList);
+    }
+    
+    if (sortBy) {
+        sortBy.addEventListener('change', renderList);
     }
     
     // Audio button
@@ -2378,61 +2417,206 @@ function getDirText() {
 // List management with bulk actions
 function renderList() {
     const tbody = byId('tableBody');
-    if (!tbody) return;
+    const mobileCards = byId('mobileCards');
+    if (!tbody && !mobileCards) return;
     
-    tbody.innerHTML = '';
+    // Apply filters and sorting
+    let filteredItems = applyFilters(state.items);
+    filteredItems = applySorting(filteredItems);
     
-    state.items.forEach(item => {
-        const row = document.createElement('tr');
-        const successRate = item.attempts > 0 ? Math.round((item.correct / item.attempts) * 100) : 0;
-        const dueText = item.dueAt && item.dueAt > now() ? 
-            Math.ceil((item.dueAt - now()) / (1000 * 60 * 60 * 24)) + ' Tage' : 
-            'Fällig';
+    // Render desktop table
+    if (tbody) {
+        tbody.innerHTML = '';
         
-        row.innerHTML = `
-            <td>
-                <input type="checkbox" class="row-checkbox" data-id="${item.id}">
-            </td>
-            <td><strong>${item.it}</strong></td>
-            <td>${item.de}</td>
-            <td>${dueText}</td>
-            <td>${item.streak || 0}</td>
-            <td>${successRate}%</td>
-            <td>${item.suspended ? '⏸️ Pausiert' : '▶️ Aktiv'}</td>
-            <td>
-                <button class="btn ghost btn-xs suspend-btn" data-id="${item.id}">
-                    ${item.suspended ? 'Aktivieren' : 'Pausieren'}
-                </button>
-                <button class="btn ghost btn-xs delete-btn" data-id="${item.id}">Löschen</button>
-            </td>
-        `;
+        filteredItems.forEach(item => {
+            const row = document.createElement('tr');
+            const successRate = item.attempts > 0 ? Math.round((item.correct / item.attempts) * 100) : 0;
+            const dueText = item.dueAt && item.dueAt > now() ? 
+                Math.ceil((item.dueAt - now()) / (1000 * 60 * 60 * 24)) + ' Tage' : 
+                'Fällig';
+            
+            row.innerHTML = `
+                <td>
+                    <input type="checkbox" class="row-checkbox" data-id="${item.id}">
+                </td>
+                <td><strong>${item.it}</strong></td>
+                <td>${item.de}</td>
+                <td>${dueText}</td>
+                <td>${item.streak || 0}</td>
+                <td>${successRate}%</td>
+                <td>${item.suspended ? '⏸️ Pausiert' : '▶️ Aktiv'}</td>
+                <td>
+                    <button class="btn ghost btn-xs suspend-btn" data-id="${item.id}">
+                        ${item.suspended ? 'Aktivieren' : 'Pausieren'}
+                    </button>
+                    <button class="btn ghost btn-xs delete-btn" data-id="${item.id}">Löschen</button>
+                </td>
+            `;
+            
+            // Add event listeners for the buttons
+            const suspendBtn = row.querySelector('.suspend-btn');
+            const deleteBtn = row.querySelector('.delete-btn');
+            const checkbox = row.querySelector('.row-checkbox');
+            
+            if (suspendBtn) {
+                suspendBtn.addEventListener('click', () => toggleSuspend(item.id));
+            }
+            
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => deleteCard(item.id));
+            }
+            
+            if (checkbox) {
+                checkbox.addEventListener('change', updateBulkToolbar);
+            }
+            
+            tbody.appendChild(row);
+        });
+    }
+    
+    // Render mobile cards
+    if (mobileCards) {
+        mobileCards.innerHTML = '';
         
-        // Add event listeners for the buttons
-        const suspendBtn = row.querySelector('.suspend-btn');
-        const deleteBtn = row.querySelector('.delete-btn');
-        const checkbox = row.querySelector('.row-checkbox');
-        
-        if (suspendBtn) {
-            suspendBtn.addEventListener('click', () => toggleSuspend(item.id));
-        }
-        
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', () => deleteCard(item.id));
-        }
-        
-        if (checkbox) {
-            checkbox.addEventListener('change', updateBulkToolbar);
-        }
-        
-        tbody.appendChild(row);
-    });
+        filteredItems.forEach(item => {
+            const successRate = item.attempts > 0 ? Math.round((item.correct / item.attempts) * 100) : 0;
+            const dueText = item.dueAt && item.dueAt > now() ? 
+                Math.ceil((item.dueAt - now()) / (1000 * 60 * 60 * 24)) + ' Tage' : 
+                'Fällig';
+            
+            const card = document.createElement('div');
+            card.className = 'vocab-card';
+            
+            card.innerHTML = `
+                <div class="vocab-card-header">
+                    <input type="checkbox" class="vocab-checkbox row-checkbox" data-id="${item.id}">
+                    <div class="vocab-words">
+                        <div class="vocab-italian">${item.it}</div>
+                        <div class="vocab-german">${item.de}</div>
+                    </div>
+                </div>
+                <div class="vocab-stats">
+                    <div class="vocab-stat">
+                        <span>⏰</span>
+                        <span>${dueText}</span>
+                    </div>
+                    <div class="vocab-stat">
+                        <span>🔥</span>
+                        <span>${item.streak || 0}</span>
+                    </div>
+                    <div class="vocab-stat">
+                        <span>📊</span>
+                        <span>${successRate}%</span>
+                    </div>
+                    <div class="vocab-stat">
+                        <span>${item.suspended ? '⏸️' : '▶️'}</span>
+                        <span>${item.suspended ? 'Pausiert' : 'Aktiv'}</span>
+                    </div>
+                </div>
+                <div class="vocab-actions">
+                    <button class="btn ghost suspend-btn" data-id="${item.id}">
+                        ${item.suspended ? '▶️ Aktivieren' : '⏸️ Pausieren'}
+                    </button>
+                    <button class="btn ghost delete-btn" data-id="${item.id}" style="color: var(--bad);">🗑️ Löschen</button>
+                </div>
+            `;
+            
+            // Add event listeners
+            const suspendBtn = card.querySelector('.suspend-btn');
+            const deleteBtn = card.querySelector('.delete-btn');
+            const checkbox = card.querySelector('.row-checkbox');
+            
+            if (suspendBtn) {
+                suspendBtn.addEventListener('click', () => toggleSuspend(item.id));
+            }
+            
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => deleteCard(item.id));
+            }
+            
+            if (checkbox) {
+                checkbox.addEventListener('change', updateBulkToolbar);
+            }
+            
+            mobileCards.appendChild(card);
+        });
+    }
     
     // Update counter
     const countTxt = byId('countTxt');
-    if (countTxt) countTxt.textContent = state.items.length;
+    if (countTxt) countTxt.textContent = filteredItems.length;
     
     updateBulkToolbar();
     initializeBulkActions();
+}
+
+// Filter and sorting functions
+function applyFilters(items) {
+    const searchTerm = byId('searchInput')?.value.toLowerCase() || '';
+    const statusFilter = byId('statusFilter')?.value || 'all';
+    const successFilter = byId('successFilter')?.value || 'all';
+    
+    return items.filter(item => {
+        // Search filter
+        if (searchTerm && !item.it.toLowerCase().includes(searchTerm) && 
+            !item.de.toLowerCase().includes(searchTerm)) {
+            return false;
+        }
+        
+        // Status filter
+        if (statusFilter !== 'all') {
+            const isDue = !item.dueAt || item.dueAt <= now();
+            switch (statusFilter) {
+                case 'due': if (!isDue) return false; break;
+                case 'active': if (item.suspended) return false; break;
+                case 'suspended': if (!item.suspended) return false; break;
+            }
+        }
+        
+        // Success filter
+        if (successFilter !== 'all') {
+            const successRate = item.attempts > 0 ? Math.round((item.correct / item.attempts) * 100) : 0;
+            switch (successFilter) {
+                case 'lt50': if (successRate >= 50) return false; break;
+                case '50to79': if (successRate < 50 || successRate >= 80) return false; break;
+                case 'ge80': if (successRate < 80) return false; break;
+            }
+        }
+        
+        return true;
+    });
+}
+
+function applySorting(items) {
+    const sortBy = byId('sortBy')?.value || 'default';
+    
+    return [...items].sort((a, b) => {
+        switch (sortBy) {
+            case 'dueFirst':
+                const aDue = a.dueAt || 0;
+                const bDue = b.dueAt || 0;
+                return aDue - bDue;
+                
+            case 'succAsc':
+                const aSucc = a.attempts > 0 ? (a.correct / a.attempts) : 0;
+                const bSucc = b.attempts > 0 ? (b.correct / b.attempts) : 0;
+                return aSucc - bSucc;
+                
+            case 'succDesc':
+                const aSuccDesc = a.attempts > 0 ? (a.correct / a.attempts) : 0;
+                const bSuccDesc = b.attempts > 0 ? (b.correct / b.attempts) : 0;
+                return bSuccDesc - aSuccDesc;
+                
+            case 'itAZ':
+                return a.it.localeCompare(b.it);
+                
+            case 'deAZ':
+                return a.de.localeCompare(b.de);
+                
+            default: // 'default'
+                return 0; // Keep original order
+        }
+    });
 }
 
 function toggleSuspend(id) {
@@ -2485,13 +2669,23 @@ function updateBulkToolbar() {
         selectAllCheckbox.checked = false;
     }
     
-    // Update row styling
+    // Update row styling for desktop table
     document.querySelectorAll('tbody tr').forEach((row, index) => {
         const checkbox = row.querySelector('.row-checkbox');
         if (checkbox && checkbox.checked) {
             row.classList.add('selected');
         } else {
             row.classList.remove('selected');
+        }
+    });
+    
+    // Update card styling for mobile
+    document.querySelectorAll('.vocab-card').forEach((card) => {
+        const checkbox = card.querySelector('.row-checkbox');
+        if (checkbox && checkbox.checked) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
         }
     });
 }

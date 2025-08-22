@@ -1,22 +1,117 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Parola – Italienisch Vokabeltrainer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=srs17"/>
+  <link rel="stylesheet" href="style.css?v=srs17">
+  
+  <!-- Optional: Firebase Styles (nur wenn Firebase aktiv) -->
+  <style id="firebase-auth-styles" style="display: none;">
+    /* Auth Modal Styles */
+    .auth-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+      display: flex; align-items: center; justify-content: center; z-index: 1000;
+      backdrop-filter: blur(8px);
+    }
+    .auth-modal-content {
+      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
+      border-radius: 24px; padding: 40px; max-width: 420px; width: 92%;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    }
+    .auth-header h2 {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background-clip: text;
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent;
+      color: transparent; /* Fallback für Browser ohne -webkit-text-fill-color */
+      text-align: center; font-size: 28px; font-weight: 700; margin-bottom: 12px;
+    }
+    .auth-form { display: flex; flex-direction: column; gap: 20px; }
+    .auth-form input { padding: 16px 20px; border: 2px solid rgba(102, 126, 234, 0.2);
+      border-radius: 16px; font-size: 16px; }
+    .btn-auth { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white; padding: 16px 24px; border: none; border-radius: 16px;
+      font-weight: 700; cursor: pointer; }
+    
+    /* Audio Button Hover Effects */
+    .speaker-icon:hover { opacity: 1 !important; transform: scale(1.05); }
+    .speaker-icon img { filter: grayscale(0.3); transition: filter 0.2s; }
+    .speaker-icon:hover img { filter: grayscale(0); }
+  </style>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script defer src="app.js?v=srs17"></script>
+  
+  <!-- Optional Firebase Integration -->
+  <script defer>
+    // Einfache Firebase Mock für Testing
+    window.firebaseEnabled = false;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // Add Login Button to existing header if not present
+      const headerUserArea = document.querySelector('.header-user-area');
+      if (!headerUserArea) {
+        const headerInner = document.querySelector('.header-inner');
+        if (headerInner) {
+          const userArea = document.createElement('div');
+          userArea.className = 'header-user-area';
+          userArea.innerHTML = '<button class="btn btn-sm" id="loginPrompt">Anmelden</button>';
+          headerInner.appendChild(userArea);
+          
+          // Add login modal
+          document.body.insertAdjacentHTML('afterbegin', `
+            <div id="authModal" class="auth-modal" style="display: none;">
+              <div class="auth-modal-content">
+                <div class="auth-header">
+                  <h2>🇮🇹 Benvenuto in Parola!</h2>
+                  <p style="text-align: center; color: #666;">Firebase Setup erforderlich für Cloud Sync</p>
+                </div>
+                <div class="auth-form">
+                  <p style="text-align: center; padding: 20px; color: #666;">
+                    <strong>Demo Modus</strong><br>
+                    Deine App funktioniert lokal perfekt!<br>
+                    Cloud Sync nach Firebase Setup verfügbar.
+                  </p>
+                  <button class="btn-auth" onclick="document.getElementById('authModal').style.display='none'">
+                    Verstanden
+                  </button>
+                </div>
+              </div>
+            </div>
+          `);
+          
+          // Login button event
+          document.getElementById('loginPrompt').addEventListener('click', () => {
+            document.getElementById('authModal').style.display = 'flex';
+          });
+          
+          // Close modal on outside click
+          document.getElementById('authModal').addEventListener('click', (e) => {
+            if (e.target.id === 'authModal') {
+              e.target.style.display = 'none';
+            }
+          });
+          
+          // Show auth styles
+          document.getElementById('firebase-auth-styles').style.display = 'block';
+        }
+      }
+    });
+  </script>
 </head>
 <body>
 <header class="app-header">
   <div class="container header-inner">
-    <img class="brand" src="assets/logo.svg" alt="Parola Logo" width="36" height="36"/>
-    <h1>Parola – Italienisch Vokabeltrainer</h1>
-    <div id="dueCounter" class="muted" style="margin-left:auto"></div>
+    <div class="header-brand-group">
+      <img class="brand" src="Parola-Icon.webp" alt="Parola Logo" width="36" height="36">
+      <h1>Parola – Italienisch Vokabeltrainer</h1>
+    </div>
+    <div id="dueCounter" class="muted"></div>
   </div>
 </header>
 
@@ -30,6 +125,7 @@
 
   <!-- Learn -->
   <section class="card view center" id="view-learn">
+    <h2 class="sr-only">Lernbereich</h2>
     <!-- Vereinfachte Haupt-Controls: Nur Richtung ist wirklich wichtig für den User -->
     <div class="learn-controls">
       <label style="display:block; margin-bottom:8px; font-weight:600;">Lernrichtung
@@ -70,12 +166,12 @@
       <div class="actions" id="continueSection" style="display:none; margin-top: 16px;">
         <button class="btn primary clickfx" id="mainContinueBtn" onclick="nextFlashcard()">Weiter üben</button>
       </div>
-      <button class="speaker-icon" id="speakBtn" title="Vorlesen"><img src="assets/Hear-Icon.svg" alt="Hören"></button>
+      <button class="speaker-icon" id="speakBtn" title="Vorlesen"><img src="Hear-Icon.svg" alt="Hören"></button>
     </div>
 
     <!-- Tippen -->
     <div id="typeBox" class="type-box" style="display:none">
-      <input id="typeInput" class="input type-input" placeholder="Antwort eingeben…"/>
+      <input id="typeInput" class="input type-input" placeholder="Antwort eingeben...">
       <div class="actions">
         <button class="btn ghost clickfx" id="typeRevealBtn">Auflösung zeigen</button>
         <button class="btn primary clickfx" id="typeCheckBtn">Prüfen</button>
@@ -97,7 +193,7 @@
         </select>
       </div>
       <div id="conjugationPronoun" class="word" style="font-size:32px;margin-bottom:12px">—</div>
-      <input id="conjugationInput" class="input" placeholder="Konjugierte Form eingeben…"/>
+      <input id="conjugationInput" class="input" placeholder="Konjugierte Form eingeben...">
       <div class="actions">
         <button class="btn ghost clickfx" id="conjRevealBtn">Auflösung zeigen</button>
         <button class="btn primary clickfx" id="conjCheckBtn">Prüfen</button>
@@ -207,7 +303,12 @@
       <div class="grid grid-2">
         <label style="font-size:14px;font-weight:500;margin-bottom:6px;display:block">
           Italienisch
-          <input id="itInput" class="input" placeholder="ragazzo / essere" style="margin-top:4px">
+          <div style="position:relative;display:flex;align-items:center;margin-top:4px">
+            <input id="itInput" class="input" placeholder="ragazzo / essere" style="padding-right:40px">
+            <button type="button" class="speaker-icon" style="position:absolute;right:8px;background:none;border:none;padding:4px;cursor:pointer;opacity:0.7;transition:opacity 0.2s" onclick="speakText(document.getElementById('itInput').value)" title="Italienisch vorlesen">
+              <img src="Hear-Icon.svg" alt="Vorlesen" style="width:20px;height:20px">
+            </button>
+          </div>
         </label>
         <label style="font-size:14px;font-weight:500;margin-bottom:6px;display:block">
           Deutsch
@@ -233,7 +334,14 @@
         <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Präposition eingeben</h3>
       </div>
       <div class="grid grid-2">
-        <label>Präposition (Italienisch) <input id="prepWord" class="input" placeholder="a"></label>
+        <label>Präposition (Italienisch) 
+          <div style="position:relative;display:flex;align-items:center;margin-top:4px">
+            <input id="prepWord" class="input" placeholder="a" style="padding-right:40px">
+            <button type="button" class="speaker-icon" style="position:absolute;right:8px;background:none;border:none;padding:4px;cursor:pointer;opacity:0.7;transition:opacity 0.2s" onclick="speakText(document.getElementById('prepWord').value)" title="Vorlesen">
+              <img src="Hear-Icon.svg" alt="Vorlesen" style="width:20px;height:20px">
+            </button>
+          </div>
+        </label>
         <label>Bedeutung (Deutsch) <input id="prepMeaning" class="input" placeholder="zu, nach, in"></label>
       </div>
       <label style="display:block; margin-top:10px;">Beschreibung
@@ -248,8 +356,8 @@
       
       <!-- Action Buttons integrated in form -->
       <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-        <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
-        <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
+        <button id="addPrepBtn" class="btn primary clickfx">Hinzufügen</button>
+        <button id="resetPrepBtn" class="btn ghost clickfx">Zurücksetzen</button>
       </div>
     </div>
 
@@ -260,7 +368,12 @@
         <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Verb eingeben</h3>
       </div>
       <label style="display:block;margin-bottom:10px">Infinitiv (Italienisch)
-        <input id="verbInfinitive" class="input" placeholder="parlare">
+        <div style="position:relative;display:flex;align-items:center;margin-top:4px">
+          <input id="verbInfinitive" class="input" placeholder="parlare" style="padding-right:40px">
+          <button type="button" class="speaker-icon" style="position:absolute;right:8px;background:none;border:none;padding:4px;cursor:pointer;opacity:0.7;transition:opacity 0.2s" onclick="speakText(document.getElementById('verbInfinitive').value)" title="Vorlesen">
+            <img src="Hear-Icon.svg" alt="Vorlesen" style="width:20px;height:20px">
+          </button>
+        </div>
       </label>
       <label style="display:block;margin-bottom:10px">Bedeutung (Deutsch)
         <input id="verbMeaning" class="input" placeholder="sprechen">
@@ -277,8 +390,8 @@
       
       <!-- Action Buttons integrated in form -->
       <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-        <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
-        <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
+        <button id="addVerbBtn" class="btn primary clickfx">Hinzufügen</button>
+        <button id="resetVerbBtn" class="btn ghost clickfx">Zurücksetzen</button>
       </div>
     </div>
 
@@ -289,7 +402,14 @@
         <h3 style="margin:0;color:var(--text);font-size:16px;font-weight:600;">Artikel eingeben</h3>
       </div>
       <div class="grid grid-2">
-        <label>Wort (Italienisch) <input id="articleWord" class="input" placeholder="ragazzo"></label>
+        <label>Wort (Italienisch) 
+          <div style="position:relative;display:flex;align-items:center;margin-top:4px">
+            <input id="articleWord" class="input" placeholder="ragazzo" style="padding-right:40px">
+            <button type="button" class="speaker-icon" style="position:absolute;right:8px;background:none;border:none;padding:4px;cursor:pointer;opacity:0.7;transition:opacity 0.2s" onclick="speakText(document.getElementById('articleWord').value)" title="Vorlesen">
+              <img src="Hear-Icon.svg" alt="Vorlesen" style="width:20px;height:20px">
+            </button>
+          </div>
+        </label>
         <label>Übersetzung (Deutsch) <input id="articleTranslation" class="input" placeholder="der Junge"></label>
       </div>
       <div class="grid grid-2" style="margin-top:10px;">
@@ -319,8 +439,8 @@
       
       <!-- Action Buttons integrated in form -->
       <div style="display:flex;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-        <button id="addBtn" class="btn primary clickfx">Hinzufügen</button>
-        <button id="resetBtn" class="btn ghost clickfx">Zurücksetzen</button>
+        <button id="addArticleBtn" class="btn primary clickfx">Hinzufügen</button>
+        <button id="resetArticleBtn" class="btn ghost clickfx">Zurücksetzen</button>
       </div>
     </div>
 
@@ -369,7 +489,7 @@
   <section class="card view" id="view-manage" hidden>
     <h2 style="margin-bottom:24px;font-size:24px;font-weight:600;">Vokabeln verwalten</h2>
     <div class="list-controls">
-      <input id="searchInput" class="input" placeholder="Suchen…"/>
+      <input id="searchInput" class="input" placeholder="Suchen...">
       <select id="statusFilter" class="input input-compact">
         <option value="all">Status: Alle</option>
         <option value="due">Fällig</option>
@@ -378,9 +498,9 @@
       </select>
       <select id="successFilter" class="input input-compact">
         <option value="all">Erfolg: Alle</option>
-        <option value="lt50">Erfolg < 50%</option>
-        <option value="50to79">Erfolg 50–79%</option>
-        <option value="ge80">Erfolg ≥ 80%</option>
+        <option value="lt50">Erfolg &lt; 50%</option>
+        <option value="50to79">Erfolg 50-79%</option>
+        <option value="ge80">Erfolg &gt;= 80%</option>
       </select>
       <select id="sortBy" class="input input-compact">
         <option value="default">Sortierung: Standard</option>
@@ -406,7 +526,8 @@
       </div>
     </div>
     
-    <div class="table-wrap">
+    <!-- Desktop Table View -->
+    <div class="table-wrap desktop-only">
       <table>
         <thead>
           <tr>
@@ -425,6 +546,9 @@
         <tbody id="tableBody"></tbody>
       </table>
     </div>
+    
+    <!-- Mobile Card View -->
+    <div class="mobile-cards mobile-only" id="mobileCards"></div>
   </section>
 
   <!-- Settings -->

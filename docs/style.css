@@ -2,22 +2,91 @@
 :root{--bg:#fff;--text:#111;--surface:#fff;--border:#e6e6e6;--accent:#111;--ghost:#f2f2f2;--ok:#2e7d32;--bad:#c62828}
 @media (prefers-color-scheme:dark){:root{--bg:#0f0f10;--text:#f5f5f5;--surface:#151517;--border:#2a2a2d;--accent:#fff;--ghost:#222326;--ok:#81c784;--bad:#ef9a9a}}
 html,body{background:var(--bg);color:var(--text)}
-body{margin:0;font:16px/1.45 Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-h1,h2,h3,h4,h5,h6{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;font-weight:600;margin:0;color:var(--text)}
-.container{max-width:1000px;margin:0 auto;padding:16px}
-.app-header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border)}
-.header-inner{display:flex;align-items:center;gap:12px;padding:12px 16px}
+body{margin:0;font:16px/1.45 "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif}
+h1,h2,h3,h4,h5,h6{font-family:"Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;font-weight:600;margin:0;color:var(--text)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.container{max-width:1000px;margin:0 auto;padding:20px}
+
+/* Mobile: Optimiertes Padding - verhindert Abschneiden */
+@media (max-width: 680px) {
+  .container { 
+    padding: 16px 8px; /* Weniger seitliches Padding */
+  }
+}
+.app-header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:100;backdrop-filter:blur(8px)}
+.header-inner{
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Zentriert den gesamten Header-Inhalt */
+  gap: 12px;
+  padding: 12px 16px;
+  min-height: 60px;
+  max-width: 1000px; /* Begrenzt Breite wie Container */
+  margin: 0 auto; /* Zentriert den Header-Container */
+  position: relative; /* Für absolut positionierten Counter */
+}
+
+/* Mobile Header: Reduziertes Padding */
+@media (max-width: 680px) {
+  .header-inner { 
+    padding: 12px 8px; /* Weniger seitliches Padding */
+    gap: 8px;
+    justify-content: center; /* Bleibt zentriert auf Mobile */
+  }
+}
+.header-inner h1{
+  font-weight: 600;
+  text-align: center;
+  margin: 0; /* Kein flex mehr - zentrierte Logo+Titel Gruppe */
+}
+
+/* Zentrierte Logo + Titel Gruppe */
+.header-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Due Counter absolut positioniert für Clean Look */
+#dueCounter {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--muted);
+}
+
+@media (max-width: 680px) {
+  .header-brand-group {
+    gap: 8px;
+  }
+  
+  #dueCounter {
+    right: 8px;
+    font-size: 12px;
+  }
+}
+
 .brand{width:36px;height:36px;border-radius:10px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;box-shadow:0 2px 8px rgba(0,0,0,.04);padding:24px}
 .grid{display:grid;gap:16px}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-2>*{min-width:0}@media(max-width:680px){.grid-2{grid-template-columns:1fr}}
 .muted{color:rgba(0,0,0,.55)}@media(prefers-color-scheme:dark){.muted{color:rgba(255,255,255,.6)}}
+
+/* Mobile: Dezentere muted Texte */
+@media (max-width: 680px) {
+  .muted {
+    font-size: 0.9em; /* 10% kleiner */
+    opacity: 0.8;
+  }
+}
 .center{text-align:center}
 
 /* Einheitliche Word/Text-Darstellung */
 .word{
   font-size:32px;
   font-weight:600;
-  font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  font-family:Montserrat,"system-ui","-apple-system","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   text-align:center;
   margin:16px auto;
   padding:16px 20px;
@@ -36,16 +105,28 @@ h1,h2,h3,h4,h5,h6{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto
   border-radius: 12px;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0,0,0,.08);
-  font-family: Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  font-family: Montserrat,"system-ui","-apple-system","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   font-weight: 500;
   font-size: 14px;
-  margin: 4px;
+  margin: 2px;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   min-width: auto;
+  white-space: nowrap; /* Verhindert Textumbruch */
+}
+
+/* Mobile: Kompaktere Buttons */
+@media (max-width: 680px) {
+  .btn { 
+    margin: 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    flex-shrink: 0; /* Verhindert Schrumpfen */
+    min-width: fit-content;
+  }
 }
 
 .btn:hover{
@@ -79,7 +160,14 @@ h1,h2,h3,h4,h5,h6{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto
   min-width: auto;
 }
 
-/* Extra compact buttons for tables */
+/* Responsive classes */
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
 .btn-table{
   padding: 3px 6px;
   font-size: 11px;
@@ -99,12 +187,47 @@ h1,h2,h3,h4,h5,h6{font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto
   font-size: 16px;
   font-weight: 600;
 }
-.tabs{display:flex;gap:10px;margin:12px 0 16px;flex-wrap:wrap;justify-content:center}.tabs .active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.tabs{
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Mobile: Optimierte Tab-Navigation */
+@media (max-width: 680px) {
+  .tabs { 
+    gap: 4px;
+    margin: 8px 0 12px;
+    /* Horizontales Scrolling falls nötig */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap; /* Keine Umbrüche auf Mobile */
+    justify-content: flex-start;
+    /* Scrollbar ausblenden */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.tabs .active{
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
 label{
   display:flex;
   flex-direction:column;
   gap:6px;
-  font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  font-family:Montserrat,"system-ui","-apple-system","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   font-weight:600;
   color:var(--text);
   margin-bottom:8px;
@@ -118,7 +241,7 @@ label[style*="display:block"]{
   border:1px solid var(--border);
   background:var(--surface);
   color:var(--text);
-  font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  font-family:Montserrat,"system-ui","-apple-system","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   font-size:16px;
   font-weight:500;
   min-height:20px;
@@ -161,7 +284,7 @@ label[style*="display:block"]{
     filter:invert(1);
   }
 }
-.learn-controls{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}.chip{display:inline-block;padding:4px 12px;border-radius:9999px;background:var(--ghost);border:1px solid var(--border);font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;font-weight:600}
+.learn-controls{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}.chip{display:inline-block;padding:4px 12px;border-radius:9999px;background:var(--ghost);border:1px solid var(--border);font-family:Montserrat,"system-ui","-apple-system","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-weight:600}
 .actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px;justify-content:center}
 .actions.wrap{gap:12px}
 /* Button groups for settings page */
@@ -169,10 +292,10 @@ label[style*="display:block"]{
 .list-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:12px}.list-controls .input{min-width:150px;font-size:13px}
 .table-wrap{border-radius:16px;overflow:hidden;max-height:70vh;overflow-y:auto}
 table{width:100%;border-collapse:separate;border-spacing:0;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.04);font-size:13px}
-thead th{position:sticky;top:0;z-index:1;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(6px);text-align:left;font-weight:600;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
-tbody td{padding:8px 12px;vertical-align:middle;border-top:1px solid color-mix(in srgb,var(--border) 70%,transparent);font-size:13px;line-height:1.3}
-tbody tr:nth-child(odd){background:color-mix(in srgb,var(--ghost) 55%,transparent)}
-tbody tr:hover{background:color-mix(in srgb,var(--ghost) 80%,transparent)}
+thead th{position:sticky;top:0;z-index:1;background:rgba(255,255,255,0.92);backdrop-filter:blur(6px);text-align:left;font-weight:600;padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+tbody td{padding:8px 12px;vertical-align:middle;border-top:1px solid rgba(230,230,230,0.7);font-size:13px;line-height:1.3}
+tbody tr:nth-child(odd){background:rgba(242,242,242,0.55)}
+tbody tr:hover{background:rgba(242,242,242,0.8)}
 /* Compact vocabulary management */
 .status-compact{padding:2px 6px;font-size:10px;border-radius:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
 .status-active{background:var(--ok);color:white}
@@ -201,7 +324,7 @@ td.success-cell{font-weight:600}.success-cell.ok{color:var(--ok)}.success-cell.m
 .selected-info{
   font-weight:600;
   color:var(--text);
-  font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  font-family:Montserrat,"system-ui","-apple-system","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 
 .bulk-actions{
@@ -220,7 +343,7 @@ input[type="checkbox"]{
 
 /* Row selection styling */
 tbody tr.selected{
-  background:color-mix(in srgb,var(--accent) 8%,var(--surface)) !important;
+  background:rgba(17,17,17,0.08) !important;
   border-left:3px solid var(--accent);
 }
 
@@ -239,11 +362,11 @@ tbody tr.selected{
 .stats-chart{display:block;margin-top:12px;width:100%;max-width:600px}
 /* Inline edit */
 .due-edit{display:flex;gap:8px;align-items:center}
-.due-input{padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;font-size:14px}
+.due-input{padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:Montserrat,"system-ui","-apple-system","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px}
 
 /* Feedback styling */
 .type-feedback{
-  font-family:Montserrat,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  font-family:Montserrat,"system-ui","-apple-system","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   font-size:14px;
   font-weight:500;
   padding:12px 16px;
@@ -254,38 +377,38 @@ tbody tr.selected{
   transition: all 0.3s ease;
 }
 .type-feedback.ok{
-  color:var(--ok);
-  background:color-mix(in srgb, #f0fdf4 60%, var(--surface));
-  border-color:var(--ok);
-  box-shadow: 0 2px 8px rgba(var(--ok-rgb, 34, 197, 94), 0.1);
+  color: #2e7d32;
+  background: rgba(232,245,232,0.8);
+  border-color: #4caf50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
 }
 .type-feedback.bad{
   color:var(--bad);
-  background:color-mix(in srgb, #fef2f2 60%, var(--surface));
+  background:rgba(254,242,242,0.6);
   border-color:var(--bad);
-  box-shadow: 0 2px 8px rgba(var(--bad-rgb, 239, 68, 68), 0.1);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
 }
 
 /* Tippen-Modus Container */
 .type-box {
-  background: color-mix(in srgb, #f3e5f5 60%, var(--surface));
-  border: 2px solid color-mix(in srgb, #9c27b0 30%, var(--border));
+  background: rgba(232,245,232,0.6);
+  border: 2px solid rgba(76,175,80,0.3);
   border-radius: 16px;
   padding: 20px;
   margin: 16px 0;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.1);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
 }
 
 .type-box:hover {
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.15);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.15);
   transform: translateY(-1px);
 }
 
 /* Type Input optimiert */
 .type-input {
   background: var(--surface);
-  border: 2px solid color-mix(in srgb, #9c27b0 40%, var(--border));
+  border: 2px solid rgba(76,175,80,0.4);
   border-radius: 12px;
   padding: 12px 16px;
   font-size: 16px;
@@ -296,18 +419,18 @@ tbody tr.selected{
   margin: 0 auto 16px;
   display: block;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 6px rgba(156, 39, 176, 0.08);
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.08);
 }
 
 .type-input:focus {
   outline: none;
-  border-color: #9c27b0;
-  box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.1), 0 2px 8px rgba(156, 39, 176, 0.15);
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1), 0 2px 8px rgba(76, 175, 80, 0.15);
   transform: translateY(-1px);
 }
 
 .type-input::placeholder {
-  color: color-mix(in srgb, var(--text) 60%, transparent);
+  color: rgba(17,17,17,0.6);
   font-weight: 400;
 }
 
@@ -384,8 +507,8 @@ tbody tr.selected{
 
 /* Verben-Konjugation Container */
 .conjugation-box {
-  background: color-mix(in srgb, #fff3e0 60%, var(--surface));
-  border: 2px solid color-mix(in srgb, #ff9800 30%, var(--border));
+  background: rgba(255,243,224,0.6);
+  border: 2px solid rgba(255,152,0,0.3);
   border-radius: 16px;
   padding: 20px;
   margin: 16px 0;
@@ -401,7 +524,7 @@ tbody tr.selected{
 /* Zeitform-Selektor optimiert */
 #tenseSelect {
   background: var(--surface);
-  border: 2px solid color-mix(in srgb, #ff9800 40%, var(--border));
+  border: 2px solid rgba(255,152,0,0.4);
   border-radius: 12px;
   padding: 10px 14px;
   font-size: 14px;
@@ -429,7 +552,7 @@ tbody tr.selected{
   padding: 16px 20px;
   background: var(--surface);
   border-radius: 12px;
-  border: 2px solid color-mix(in srgb, #ff9800 30%, var(--border));
+  border: 2px solid rgba(255,152,0,0.3);
   box-shadow: 0 2px 6px rgba(255, 152, 0, 0.08);
   max-width: 400px;
 }
@@ -437,7 +560,7 @@ tbody tr.selected{
 /* Konjugations-Input optimiert */
 #conjugationInput {
   background: var(--surface);
-  border: 2px solid color-mix(in srgb, #ff9800 40%, var(--border));
+  border: 2px solid rgba(255,152,0,0.4);
   border-radius: 12px;
   padding: 12px 16px;
   font-size: 16px;
@@ -459,14 +582,14 @@ tbody tr.selected{
 }
 
 #conjugationInput::placeholder {
-  color: color-mix(in srgb, var(--text) 60%, transparent);
+  color: rgba(17,17,17,0.6);
   font-weight: 400;
 }
 
 /* Präpositions Container */
 .preposition-box {
-  background: color-mix(in srgb, #fce4ec 60%, var(--surface));
-  border: 2px solid color-mix(in srgb, #e91e63 30%, var(--border));
+  background: rgba(252,228,236,0.6);
+  border: 2px solid rgba(233,30,99,0.3);
   border-radius: 16px;
   padding: 20px;
   margin: 16px 0;
@@ -489,7 +612,7 @@ tbody tr.selected{
   padding: 16px 20px;
   background: var(--surface);
   border-radius: 12px;
-  border: 2px solid color-mix(in srgb, #e91e63 30%, var(--border));
+  border: 2px solid rgba(233,30,99,0.3);
   box-shadow: 0 2px 6px rgba(233, 30, 99, 0.08);
   max-width: 400px;
   line-height: 1.4;
@@ -531,7 +654,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   padding: 16px 20px;
   background: var(--surface);
   border-radius: 12px;
-  border: 2px solid color-mix(in srgb, #9c27b0 30%, var(--border));
+  border: 2px solid rgba(156,39,176,0.3);
   box-shadow: 0 2px 6px rgba(156, 39, 176, 0.08);
   max-width: 400px;
   line-height: 1.4;
@@ -559,7 +682,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .mc-question {
   font-size: 32px;
   font-weight: 600;
-  font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   text-align: center;
   margin: 16px auto 24px auto;
   padding: 16px 20px;
@@ -568,7 +691,6 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, .08);
   max-width: 400px;
-  line-height: 1.3;
 }
 
 .mc-options {
@@ -587,7 +709,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   border-radius: 12px;
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0, 0, 0, .08);
-  font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-weight: 500;
   font-size: 14px;
   margin: 4px;
@@ -693,7 +815,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 
 /* Präpositions-spezifische Farben */
 .preposition-box .mc-options button {
-  border-color: color-mix(in srgb, #e91e63 40%, var(--border));
+  border-color: rgba(233,30,99,0.4);
   color: #c2185b;
   position: relative;
   overflow: hidden;
@@ -715,7 +837,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 }
 
 .preposition-box .mc-options button:hover:not(:disabled) {
-  background: color-mix(in srgb, #fce4ec 40%, var(--surface));
+  background: rgba(252,228,236,0.4);
   border-color: #e91e63;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(233, 30, 99, 0.15);
@@ -723,7 +845,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 
 /* Artikel-spezifische Farben */
 .article-box .mc-options button {
-  border-color: color-mix(in srgb, #9c27b0 40%, var(--border));
+  border-color: rgba(156,39,176,0.4);
   color: #8e24aa;
   position: relative;
   overflow: hidden;
@@ -745,7 +867,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 }
 
 .article-box .mc-options button:hover:not(:disabled) {
-  background: color-mix(in srgb, #f3e5f5 40%, var(--surface));
+  background: rgba(243,229,245,0.4);
   border-color: #9c27b0;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(156, 39, 176, 0.15);
@@ -753,8 +875,8 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 
 /* Artikel Container */
 .article-box {
-  background: color-mix(in srgb, #f3e5f5 60%, var(--surface));
-  border: 2px solid color-mix(in srgb, #9c27b0 30%, var(--border));
+  background: rgba(243,229,245,0.6);
+  border: 2px solid rgba(156,39,176,0.3);
   border-radius: 16px;
   padding: 20px;
   margin: 16px 0;
@@ -780,7 +902,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   padding: 12px 20px;
   font-size: 16px;
   font-weight: 600;
-  border: 2px solid color-mix(in srgb, #9c27b0 40%, var(--border));
+  border: 2px solid rgba(156,39,176,0.4);
   background: var(--surface);
   color: #7b1fa2;
   border-radius: 12px;
@@ -790,7 +912,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 }
 
 .article-options button:hover {
-  background: color-mix(in srgb, #f3e5f5 40%, var(--surface));
+  background: rgba(243,229,245,0.4);
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(156, 39, 176, 0.12);
 }
@@ -825,11 +947,11 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .category-progress-bar{height:100%;background:var(--ok);transition:width 0.3s ease}
 .achievements{display:flex;gap:8px;flex-wrap:wrap}
 .achievement{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:var(--ghost);border:1px solid var(--border);border-radius:12px;font-size:14px}
-.achievement.earned{background:color-mix(in srgb,var(--ok) 20%,transparent);border-color:var(--ok)}
+.achievement.earned{background:rgba(46,125,50,0.2);border-color:var(--ok)}
 .achievement-icon{font-size:18px}
 /* Achievement Notifications */
 .achievement-notification{position:fixed;top:20px;right:20px;z-index:1000;animation:slideInRight 0.5s ease,slideOutRight 0.5s ease 3.5s forwards}
-.achievement-popup{background:color-mix(in srgb,var(--ok) 95%,transparent);border:2px solid var(--ok);border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.15);display:flex;align-items:center;gap:12px;max-width:300px}
+.achievement-popup{background:rgba(46,125,50,0.95);border:2px solid var(--ok);border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.15);display:flex;align-items:center;gap:12px;max-width:300px}
 .achievement-popup .achievement-icon{font-size:24px}
 @keyframes slideInRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
 @keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
@@ -844,7 +966,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .level-fill{height:100%;background:linear-gradient(90deg,var(--ok),#81c784);transition:width 0.3s ease}
 
 /* Quick Start Buttons */
-.quick-start-buttons{padding:12px;background:color-mix(in srgb,var(--ghost) 50%,transparent);border-radius:12px;margin:16px 0}
+.quick-start-buttons{padding:12px;background:rgba(242,242,242,0.5);border-radius:12px;margin:16px 0}
 .level-text{font-size:12px;color:var(--muted);margin-top:4px}
 
 /* Flashcard Improvements - Vereinfacht ohne 3D-Animation */
@@ -855,7 +977,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   height:100%;
   border-radius:16px;
   border:2px solid #2196f3;
-  background:color-mix(in srgb, #e3f2fd 80%, var(--surface));
+  background:rgba(227,242,253,0.8);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -870,21 +992,21 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 
 /* Flashcard when showing answer (flipped state) */
 .flashcard-content.showing-answer {
-  background:color-mix(in srgb, #f0fdf4 60%, var(--surface)) !important;
+  background:rgba(240,253,244,0.6) !important;
   border-color:var(--ok) !important;
-  box-shadow:0 4px 12px rgba(var(--ok-rgb, 34, 197, 94), 0.15) !important;
+  box-shadow:0 4px 12px rgba(34, 197, 94, 0.15) !important;
 }
 
 .flashcard:hover .flashcard-content{
-  background:color-mix(in srgb, #e3f2fd 90%, var(--surface));
+  background:rgba(227,242,253,0.9);
   box-shadow:0 6px 16px rgba(33,150,243,0.2);
   transform:translateY(-2px);
 }
 
 /* Hover effect for flipped state */
 .flashcard:hover .flashcard-content.showing-answer{
-  background:color-mix(in srgb, #f0fdf4 70%, var(--surface)) !important;
-  box-shadow:0 6px 16px rgba(var(--ok-rgb, 34, 197, 94), 0.2) !important;
+  background:rgba(240,253,244,0.7) !important;
+  box-shadow:0 6px 16px rgba(34, 197, 94, 0.2) !important;
   transform:translateY(-2px);
 }
 .flashcard-word{font-size:32px;font-weight:600;color:var(--text);margin-top:0;margin-bottom:12px;}
@@ -893,27 +1015,57 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .auto-flip-timer{width:100%;height:3px;background:var(--border);border-radius:2px;margin:10px 0;overflow:hidden}
 .auto-flip-progress{height:100%;background:var(--accent);border-radius:2px;transition:width 3s linear;width:0%}
 .flashcard-actions{
-  margin-top:24px;
-  padding-top:16px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:20px;
-  min-height:120px;
+  margin-top: 16px;
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 120px;
+  width: 100%;
 }
+
+/* Hauptbuttons (Nicht gewusst / Gewusst) - kompakterer Abstand */
 .flashcard-actions #flashcardButtons{
-  display:flex;
-  flex-direction:row;
-  gap:16px;
-  justify-content:center;
-  width:100%;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 0 auto;
 }
+
+/* Skip-Button - mehr Abstand nach oben */
 .flashcard-actions .next-skip-buttons{
-  display:flex;
-  flex-direction:row;
-  gap:16px;
-  justify-content:center;
-  width:100%;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 8px auto 0;
+}
+
+/* Mobile: Kompaktere Anordnung mit optimalen Abständen */
+@media (max-width: 680px) {
+  .flashcard-actions {
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 6px;
+  }
+  
+  .flashcard-actions #flashcardButtons {
+    gap: 10px;
+    justify-content: center;
+  }
+  
+  .flashcard-actions .next-skip-buttons {
+    gap: 10px;
+    justify-content: center;
+    margin-top: 6px;
+  }
 }
 .flashcard-actions .flashcard-hint{
   text-align:center;
@@ -924,9 +1076,25 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   padding:8px 16px;
 }
 
+/* Mobile: Kleinere Hinweise für bessere UX */
+@media (max-width: 680px) {
+  .flashcard-actions .flashcard-hint {
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 6px 12px;
+    max-width: 280px;
+    opacity: 0.8;
+  }
+  
+  .flashcard-actions .btn {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+}
+
 /* Mode Button Colors - With Dark Mode Support */
 .mode-btn.mode-flashcards {
-  background: color-mix(in srgb, #e3f2fd 80%, transparent) !important;
+  background: rgba(227,242,253,0.8) !important;
   border: 2px solid #2196f3 !important;
   color: #1976d2 !important;
   border-radius: 12px !important;
@@ -943,7 +1111,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .mode-btn.mode-flashcards:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(33,150,243,0.2) !important;
-  background: color-mix(in srgb, #e3f2fd 60%, transparent) !important;
+  background: rgba(227,242,253,0.6) !important;
 }
 
 .mode-btn.mode-flashcards.active {
@@ -955,9 +1123,9 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 }
 
 .mode-btn.mode-type {
-  background: color-mix(in srgb, #f3e5f5 80%, transparent) !important;
-  border: 2px solid #9c27b0 !important;
-  color: #7b1fa2 !important;
+  background: rgba(232,245,232,0.8) !important;
+  border: 2px solid #4caf50 !important;
+  color: #2e7d32 !important;
   border-radius: 12px !important;
   padding: 16px 24px !important;
   min-height: auto !important;
@@ -967,24 +1135,26 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   justify-content: center !important;
   gap: 8px !important;
   transition: all 0.2s ease !important;
+  font-weight: 600 !important;
 }
 
 .mode-btn.mode-type:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 4px 12px rgba(156,39,176,0.2) !important;
-  background: color-mix(in srgb, #f3e5f5 60%, transparent) !important;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.25) !important;
+  background: rgba(232,245,232,0.65) !important;
+  border-color: #43a047 !important;
 }
 
 .mode-btn.mode-type.active {
-  background: #9c27b0 !important;
-  border-color: #9c27b0 !important;
+  background: #4caf50 !important;
+  border-color: #4caf50 !important;
   color: white !important;
-  box-shadow: 0 2px 8px rgba(156,39,176,0.3) !important;
+  box-shadow: 0 2px 8px rgba(76,175,80,0.35) !important;
   transform: translateY(-1px) !important;
 }
 
 .mode-btn.mode-conjugation {
-  background: color-mix(in srgb, #fff3e0 80%, transparent) !important;
+  background: rgba(255,243,224,0.8) !important;
   border: 2px solid #ff9800 !important;
   color: #f57c00 !important;
   border-radius: 12px !important;
@@ -1001,7 +1171,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .mode-btn.mode-conjugation:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(255,152,0,0.2) !important;
-  background: color-mix(in srgb, #fff3e0 60%, transparent) !important;
+  background: rgba(255,243,224,0.6) !important;
 }
 
 .mode-btn.mode-conjugation.active {
@@ -1013,7 +1183,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 }
 
 .mode-btn.mode-preposition {
-  background: color-mix(in srgb, #fce4ec 80%, transparent) !important;
+  background: rgba(252,228,236,0.8) !important;
   border: 2px solid #e91e63 !important;
   color: #c2185b !important;
   border-radius: 12px !important;
@@ -1030,7 +1200,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .mode-btn.mode-preposition:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(233,30,99,0.2) !important;
-  background: color-mix(in srgb, #fce4ec 60%, transparent) !important;
+  background: rgba(252,228,236,0.6) !important;
 }
 
 .mode-btn.mode-preposition.active {
@@ -1042,7 +1212,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 }
 
 .mode-btn.mode-articles {
-  background: color-mix(in srgb, #f3e5f5 80%, transparent) !important;
+  background: rgba(243,229,245,0.8) !important;
   border: 2px solid #9c27b0 !important;
   color: #7b1fa2 !important;
   border-radius: 12px !important;
@@ -1059,7 +1229,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .mode-btn.mode-articles:hover {
   transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(156,39,176,0.2) !important;
-  background: color-mix(in srgb, #f3e5f5 60%, transparent) !important;
+  background: rgba(243,229,245,0.6) !important;
 }
 
 .mode-btn.mode-articles.active {
@@ -1083,23 +1253,36 @@ body:has(.article-box[style*="display: block"]) #learnWord {
     border-radius: 16px;
   }
   
-  /* Header adjustments */
+  /* Header adjustments - Perplexity-Style: Logo ausgeblendet auf Mobile */
   .header-inner {
     padding: 8px 12px;
     gap: 8px;
+    justify-content: center;
+    text-align: center;
+    position: relative;
   }
   
+  /* Logo auf Mobile ausblenden */
+  .brand {
+    display: none;
+  }
+  
+  /* Counter absolut positioniert */
+  #dueCounter {
+    position: absolute;
+    right: 12px;
+    font-size: 12px;
+  }
+  
+  /* Titel fetter für bessere Hierarchie */
   .header-inner h1 {
     font-size: 16px;
     font-weight: 600;
+    margin: 0;
+    text-align: center;
   }
   
-  .brand {
-    width: 28px;
-    height: 28px;
-  }
-  
-  /* Tab navigation */
+  /* Tab navigation - Zentriert */
   .tabs {
     gap: 6px;
     margin: 8px 0 12px;
@@ -1107,6 +1290,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    justify-content: center;
   }
   
   .tabs::-webkit-scrollbar {
@@ -1121,7 +1305,7 @@ body:has(.article-box[style*="display: block"]) #learnWord {
     flex-shrink: 0;
   }
   
-  /* Learning interface */
+  /* Learning interface - Vollständig zentriert */
   .word {
     font-size: 24px;
     line-height: 1.2;
@@ -1129,11 +1313,13 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   
   .current-learning {
     margin-top: 16px;
+    text-align: center;
   }
   
-  /* Mode selector buttons */
+  /* Mode selector buttons - Zentriert mit angepasster Größe */
   .mode-selector {
     margin: 16px 0;
+    text-align: center;
   }
   
   .mode-selector > div[style*="display: flex"] {
@@ -1141,16 +1327,37 @@ body:has(.article-box[style*="display: block"]) #learnWord {
     justify-content: center !important;
   }
   
+  /* Perplexity-Style: Sanftere Übergänge */
   .mode-btn {
-    padding: 8px 12px;
-    font-size: 13px;
-    min-width: auto;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    min-width: auto !important;
+    font-weight: 500 !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-radius: 8px !important;
   }
   
-  /* Learning controls */
+  /* Micro-Interactions wie Perplexity */
+  .mode-btn:hover {
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  }
+  
+  /* Learning controls - Versteckt bis Modus gewählt (Perplexity-Style) */
   .learn-controls {
     gap: 8px;
     margin-bottom: 8px;
+    justify-content: center;
+    text-align: center;
+    opacity: 0.7;
+    transform: scale(0.95);
+    transition: all 0.3s ease;
+  }
+  
+  /* Sobald ein Modus aktiv ist, wird es sichtbarer */
+  .learn-controls.active {
+    opacity: 1;
+    transform: scale(1);
   }
   
   .learn-controls label {
@@ -1232,7 +1439,9 @@ body:has(.article-box[style*="display: block"]) #learnWord {
   }
   
   .flashcard-hint-inside {
-    font-size: 13px;
+    font-size: 11px; /* Noch kleiner auf Mobile */
+    opacity: 0.6;
+    bottom: 12px;
   }
   
   .flashcard-actions {
@@ -1275,14 +1484,95 @@ body:has(.article-box[style*="display: block"]) #learnWord {
     font-size: 14px;
   }
   
-  /* Make table horizontally scrollable on mobile */
-  table {
-    min-width: 600px;
+  /* Hide desktop table on mobile */
+  .desktop-only {
+    display: none !important;
   }
   
-  .table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  .mobile-only {
+    display: block !important;
+  }
+  
+  /* Mobile Card View */
+  .mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  
+  .vocab-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    transition: all 0.2s ease;
+  }
+  
+  .vocab-card.selected {
+    background: rgba(17,17,17,0.08);
+    border-left: 3px solid var(--accent);
+  }
+  
+  .vocab-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  
+  .vocab-checkbox {
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  
+  .vocab-words {
+    flex: 1;
+  }
+  
+  .vocab-italian {
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  
+  .vocab-german {
+    color: var(--text);
+    opacity: 0.8;
+    font-size: 14px;
+  }
+  
+  .vocab-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 12px 0;
+    font-size: 12px;
+  }
+  
+  .vocab-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--ghost);
+    border-radius: 6px;
+    color: var(--text);
+  }
+  
+  .vocab-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .vocab-actions .btn {
+    flex: 1;
+    font-size: 12px;
+    padding: 6px 12px;
   }
   
   /* Bulk toolbar */
@@ -1384,43 +1674,43 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 /* Dark Mode Adjustments for Mode Buttons */
 @media (prefers-color-scheme: dark) {
   .flashcard-content {
-    background: color-mix(in srgb, #1565c0 20%, var(--surface));
+    background: rgba(21,101,192,0.2);
     border-color: #42a5f5;
     box-shadow: 0 4px 12px rgba(66,165,245,0.15);
   }
   
   .flashcard:hover .flashcard-content {
-    background: color-mix(in srgb, #1565c0 30%, var(--surface));
+    background: rgba(21,101,192,0.3);
     box-shadow: 0 6px 16px rgba(66,165,245,0.2);
   }
 
   .mode-flashcards {
-    background: color-mix(in srgb, #1565c0 20%, var(--surface));
-    border-color: color-mix(in srgb, #42a5f5 40%, transparent);
+    background: rgba(21,101,192,0.2);
+    border-color: rgba(66,165,245,0.4);
     color: #64b5f6;
   }
   
   .mode-type {
-    background: color-mix(in srgb, #6a1b9a 20%, var(--surface));
-    border-color: color-mix(in srgb, #ab47bc 40%, transparent);
+    background: rgba(106,27,154,0.2);
+    border-color: rgba(171,71,188,0.4);
     color: #ce93d8;
   }
   
   .mode-conjugation {
-    background: color-mix(in srgb, #e65100 20%, var(--surface));
-    border-color: color-mix(in srgb, #ffa726 40%, transparent);
+    background: rgba(230,81,0,0.2);
+    border-color: rgba(255,167,38,0.4);
     color: #ffb74d;
   }
   
   .mode-preposition {
-    background: color-mix(in srgb, #2e7d32 20%, var(--surface));
-    border-color: color-mix(in srgb, #66bb6a 40%, transparent);
+    background: rgba(46,125,50,0.2);
+    border-color: rgba(102,187,106,0.4);
     color: #81c784;
   }
   
   .mode-articles {
-    background: color-mix(in srgb, #c62828 20%, var(--surface));
-    border-color: color-mix(in srgb, #ef5350 40%, transparent);
+    background: rgba(198,40,40,0.2);
+    border-color: rgba(239,83,80,0.4);
     color: #ef9a9a;
   }
 }
@@ -1440,29 +1730,29 @@ body:has(.article-box[style*="display: block"]) #learnWord {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial !important;
+    font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
 }
 
 .card-type-btn[data-type="vocab"] {
-    background: color-mix(in srgb, #e3f2fd 80%, transparent) !important;
+    background: rgba(227,242,253,0.8) !important;
     border-color: #2196f3 !important;
     color: #1976d2 !important;
 }
 
 .card-type-btn[data-type="prep"] {
-    background: color-mix(in srgb, #fce4ec 80%, transparent) !important;
+    background: rgba(252,228,236,0.8) !important;
     border-color: #e91e63 !important;
     color: #c2185b !important;
 }
 
 .card-type-btn[data-type="verb"] {
-    background: color-mix(in srgb, #fff3e0 80%, transparent) !important;
+    background: rgba(255,243,224,0.8) !important;
     border-color: #ff9800 !important;
     color: #f57c00 !important;
 }
 
 .card-type-btn[data-type="article"] {
-    background: color-mix(in srgb, #f3e5f5 80%, transparent) !important;
+    background: rgba(243,229,245,0.8) !important;
     border-color: #9c27b0 !important;
     color: #7b1fa2 !important;
 }
@@ -1485,12 +1775,12 @@ body:has(.article-box[style*="display: block"]) #learnWord {
 .card-type-btn .label {
     font-size: 14px;
     font-weight: 600;
-    font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial !important;
+    font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     color: var(--text);
     letter-spacing: 0.5px;
 }
 
 /* Force Montserrat on all card elements */
 .card-type-btn, .card-type-btn * {
-    font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial !important;
+    font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
 }
